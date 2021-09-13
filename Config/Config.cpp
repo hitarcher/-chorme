@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Config.h"
 #include "CommonFun.h"
+#include "COMMFCN.h"
 #define MAX 1024
 
 CConfig::CConfig(void)

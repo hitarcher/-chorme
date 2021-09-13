@@ -163,7 +163,7 @@ CString GetBase64Pic(CString strPath)
 		CloseHandle(hFile);
 		return false;
 	}
-	string strData = base64_encode((const unsigned char*)pBuffer, dReadSize);
+	string strData = _base64_encode((const unsigned char*)pBuffer, dReadSize);
 	CString strReturn = strData.c_str();
 	delete[]pBuffer;
 	CloseHandle(hFile);
@@ -254,7 +254,7 @@ CString Base64EncodePic(CString strPicPath)
 		return false;
 	}
 	std::string strData = "";
-	strData = base64_encode((unsigned const char*)pBuffer, dReadSize);
+	strData = _base64_encode((unsigned const char*)pBuffer, dReadSize);
 
 
 	delete[]pBuffer;

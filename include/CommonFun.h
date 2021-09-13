@@ -95,12 +95,11 @@ char* GetModuleDisk();
 char* GetModulePath();
 char* GetModuleName();
 char* GetModuleNameKey();
-BOOL CheckFileExist(CString strFilePath);
 
 CString GetLastSysErr();
 CString GetLocalIpaddress();
 
-BOOL DeleteLog(LPTSTR strPath,UINT uDays);
+//BOOL DeleteLog(LPTSTR strPath,UINT uDays);
 void DeleteDirectoryForce(CString directory_path);
 
 BYTE CharXORChar(LPBYTE pdata,int nLen);

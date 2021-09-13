@@ -23,7 +23,7 @@ typedef enum{LOGTYPE_NULL=0,LOGTYPE_DEBUG=1<<0,LOGTYPE_ERROR=1<<1,LOGTYPE_SPECIA
 
 #define SET_LOGTYPE(type) SetLogType(type)
 
-#define LOG													WriteLog2
+#define LOG2													WriteLog2
 
 #define LOG_DEBUG2(filename,title,content)					WriteLog(LOGTYPE_DEBUG,title,content,filename)
 #define LOG_ERROR(filename,title,content)					WriteLog(LOGTYPE_ERROR,title,content,filename)

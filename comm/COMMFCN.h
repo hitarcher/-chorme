@@ -4,7 +4,7 @@
 #ifdef DEBUG
 #pragma comment(lib, "HsBased.lib")
 #else
-#pragma comment(lib, "HsBase.lib")
+#pragma comment(lib, "CommUtils.lib")
 #endif
 
 #include "LOG2.H"
@@ -55,5 +55,7 @@ CString GetFileName(CString strFilePath);
 /*                            全局变量申明                              */
 /************************************************************************/
 extern CConfig	g_Config;
+
+BOOL CheckFileExist(CString filepath);
 
 #endif // __JSRCB_DEV_DRIVE_COMM_FUNCTION_H__

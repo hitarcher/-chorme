@@ -3,6 +3,10 @@
 #include "WeChatPrinterDlg.h"
 #include "afxdialogex.h"
 
+#include "mystring.h"
+#include "myos.h"
+
+#include "simple_handler.h"
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif            
@@ -116,8 +120,8 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	/*                        程 序 入 口                                   */
 	/************************************************************************/
 	SET_LOGTYPE((LOG_TYPE)(LOGTYPE_DEBUG | LOGTYPE_ERROR | LOGTYPE_SPECIAL));
-	LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "==============START==============", "");
-	DeleteLog(GetFullPath("LOG").GetBuffer(0), 30);
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "==============START==============", "");
+	//DeleteLog(GetFullPath("LOG").GetBuffer(0), 30);
 #ifdef DEBUG
 	ShowCursor(TRUE);
 #else
@@ -127,7 +131,7 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	if (CheckFileExist("update.bat"))
 	{
 		StartProcess3(GetFullPath("update.bat")); 
-		LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "OnInitDialog", "执行更新程序，替换文件");
+		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "OnInitDialog", "执行更新程序，替换文件");
 		goto EXIT;
 	}
 
@@ -144,7 +148,7 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	//加载基本配置
 	if (FALSE == g_Config.LoadBaseCfg())
 	{
-		LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "OnInitDialog", "[g_Config.LoadBaseCfg()][%s]", g_Config.GetLastErr());
+		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "OnInitDialog", "[g_Config.LoadBaseCfg()][%s]", g_Config.GetLastErr());
 		goto EXIT;
 	}
 	if (FALSE == LoadRMQPubAndRMQSUBDLL())
@@ -158,8 +162,11 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	m_hDviceStatus = CreateThread(NULL, 0, DeviceStatusThreadProc, this, 0, &dwThreadId);
 	m_hChooseProgram = CreateThread(NULL, 0, ChooseProgramThreadProc, this, 0, &dwThreadId);
 	m_hHeartBeat = CreateThread(NULL, 0, HeartBeatThreadProc, this, 0, &dwThreadId);
+
+	cef_init();
+
 	//先加载一次，避免会出现异常的黑色区域
-	LoadMainFrame();
+	//LoadMainFrame();
 	//选择加载的节目json，包含离线压缩包解压，选择紧急插播节目或者是普通节目
 	if (FALSE == ChooseJson())
 	{
@@ -177,7 +184,7 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 		::SetWindowPos(GetSafeHwnd(), HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);//最前端
 	}
 	SetTimer(TIMER_CHECKINCOMPELEDFILE, 3000, NULL);
-	LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "界面初始化成功");
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "界面初始化成功");
 	SetTimer(TIMER_CHECKMEMORY, 5000, NULL);
 	return TRUE;
 EXIT:
@@ -239,7 +246,7 @@ void CWeChatPrinterDlg::OnDestroy()
 	CloseHandle(m_hChooseProgram);
 	m_hChooseProgram = NULL;
 
-	LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "==============DESTROY==============", "");
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "==============DESTROY==============", "");
 	CImageDlg::OnDestroy();
 }
 
@@ -258,7 +265,7 @@ BOOL CWeChatPrinterDlg::LoadMainFrame()
 		//禁用缩放
 		DWORD dValue = 1;
 		BOOL bRet = WriteREG(HKEY_CURRENT_USER, "Software\\Microsoft\\Internet Explorer\\Zoom", "ZoomDisabled", REG_DWORD, (const BYTE*)(char*)&dValue, sizeof(dValue));
-		LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "LoadMainFrame", "[WriteREG(Software\\Microsoft\\Internet Explorer\\Zoom：ZoomDisabled)][%s]",
+		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "LoadMainFrame", "[WriteREG(Software\\Microsoft\\Internet Explorer\\Zoom：ZoomDisabled)][%s]",
 			bRet == TRUE ? "写注册表成功" : "写注册表失败");
 		// 兼容h5
 		dValue = 0x2710;
@@ -266,7 +273,7 @@ BOOL CWeChatPrinterDlg::LoadMainFrame()
 		// http://www.cnblogs.com/zhwl/p/3147832.html
 		// https://msdn.microsoft.com/zh-cn/library/ee330730(v=vs.85).aspx
 		bRet = WriteREG(HKEY_CURRENT_USER, "SOFTWARE\\Microsoft\\Internet Explorer\\Main\\FeatureControl\\FEATURE_BROWSER_EMULATION", "MobileCastScreen.exe", REG_DWORD, (const BYTE*)(char*)&dValue, sizeof(dValue));
-		LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "LoadMainFrame", "[SOFTWARE\\Microsoft\\Internet Explorer\\main\\FeatureControl\\FEATURE_BROWSER_EMULATION][%s]",
+		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "LoadMainFrame", "[SOFTWARE\\Microsoft\\Internet Explorer\\main\\FeatureControl\\FEATURE_BROWSER_EMULATION][%s]",
 			bRet == TRUE ? "写注册表成功" : "写注册表失败");
 		binit = TRUE;
 	}
@@ -276,10 +283,10 @@ BOOL CWeChatPrinterDlg::LoadMainFrame()
 	VARIANT vInfo;
 	vInfo.vt = VT_EMPTY;
 	//兼容HTML5需要修改注册表，否则该程序默认为IE7版本，不支持HTML5
-	m_netBrower.Navigate(strTemp.GetBuffer(0), &vInfo, &vInfo, &vInfo, &vInfo);
-	strTemp.ReleaseBuffer();
-	m_netBrower.SetWindowPos(NULL, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), SWP_SHOWWINDOW);
-	m_netBrower.ShowWindow(SW_SHOW);
+	//m_netBrower.Navigate(strTemp.GetBuffer(0), &vInfo, &vInfo, &vInfo, &vInfo);
+	//strTemp.ReleaseBuffer();
+	//m_netBrower.SetWindowPos(NULL, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), SWP_SHOWWINDOW);
+	//m_netBrower.ShowWindow(SW_SHOW);
 	return TRUE;
 }
 
@@ -297,16 +304,16 @@ void CWeChatPrinterDlg::LoadTemplate()
 	spScript.Invoke1(L"loadPage", &var2, &varRet);
 
 #ifdef DETAIlEDLOG
-	LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "LoadTemplate", "加载模板成功,加载模板为\r\n%s\r\n", strContent);
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "LoadTemplate", "加载模板成功,加载模板为\r\n%s\r\n", strContent);
 #else
-	LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "LoadTemplate", "加载模板成功");
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "LoadTemplate", "加载模板成功");
 #endif
 
 }
 
 HRESULT CWeChatPrinterDlg::CallBackFcnFromH5(CString strFcnName, CString strID, CString strFile)
 {
-	LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "CallBackFcnFromH5", "[%s][in]", strFcnName);
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "CallBackFcnFromH5", "[%s][in]", strFcnName);
 	CComQIPtr<IHTMLDocument2> spDoc = m_netBrower.get_Document();
 	CComDispatchDriver spScript;
 	spDoc->get_Script(&spScript);
@@ -317,9 +324,98 @@ HRESULT CWeChatPrinterDlg::CallBackFcnFromH5(CString strFcnName, CString strID, 
 
 	CComVariant varRet;
 	HRESULT hRet = spScript.Invoke2(strFcnName.AllocSysString(), &var1, &var2, &varRet);
-	LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "CallBackFcnFromH5", "[%s][HRESULT = %d][out]", strFcnName, hRet);
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "CallBackFcnFromH5", "[%s][HRESULT = %d][out]", strFcnName, hRet);
 	return hRet;
 }
+
+
+void CWeChatPrinterDlg::cef_init()
+{
+	// Enable High-DPI support on Windows 7 or newer.
+	CefEnableHighDPISupport();
+
+	void* sandbox_info = nullptr;
+
+#if defined(CEF_USE_SANDBOX)
+	CefScopedSandboxInfo scoped_sandbox;
+	sandbox_info = scoped_sandbox.sandbox_info();
+#endif
+
+	CefMainArgs main_args(theApp.m_hInstance);
+
+	int exit_code = CefExecuteProcess(main_args, nullptr, sandbox_info);
+	if (exit_code >= 0) {
+		return;
+	}
+
+	CefRefPtr<CefCommandLine> command_line = CefCommandLine::CreateCommandLine();
+	command_line->InitFromString(::GetCommandLineW());
+
+	CefSettings settings;
+	if (command_line->HasSwitch("enable-chrome-runtime")) {
+		settings.chrome_runtime = true;
+	}
+
+	settings.remote_debugging_port = 33220;
+	settings.multi_threaded_message_loop = true;
+	CefString(&settings.cache_path) = easytoUTF(get_fullpath("cef_catch"));
+	CefString(&settings.log_file) = easytoUTF(get_fullpath("cef_catch//cef_log.log"));
+	CefString(&settings.framework_dir_path) = easytoUTF(get_fullpath(""));
+	CefString(&settings.resources_dir_path) = easytoUTF(get_fullpath("cef_Resources"));
+	CefString(&settings.locales_dir_path) = easytoUTF(get_fullpath("cef_Resources\\locales"));
+
+#if !defined(CEF_USE_SANDBOX)
+	settings.no_sandbox = true;
+#endif
+
+	CRect rect; GetWindowRect(&rect);
+	m_cef_app =
+		new SimpleApp(
+			"www.baidu.com"
+			, m_hWnd
+			, rect
+		);
+	CefInitialize(main_args, settings, m_cef_app.get(), sandbox_info);
+}
+
+
+void CWeChatPrinterDlg::cef_close()
+{
+	/*edit by mingl : 单进程模式下，CefShutdown会出现阻塞；但是多进程下运行正常；考虑到单进程下直接退出不用管其他进程，所以也可以不用管*/
+	//CefShutdown();
+	/*end by mingl*/
+}
+
+void CWeChatPrinterDlg::cef_load_url(std::string url)
+{
+	if (m_cef_app == NULL) return;
+	CefRefPtr<SimpleHandler> default_handler = (SimpleHandler*)(void*)m_cef_app->GetDefaultClient();
+
+	if (default_handler == NULL) return;
+	CefRefPtr<CefBrowser> default_browser = default_handler->GetBrowser();
+
+	if (default_browser == NULL) return;
+	CefRefPtr<CefFrame> default_frame = default_browser->GetMainFrame();
+
+	if (default_frame == NULL) return;
+	default_frame->LoadURL(url.c_str());
+}
+
+void CWeChatPrinterDlg::cef_exec_js(std::string js)
+{
+	if (m_cef_app == NULL) return;
+	CefRefPtr<SimpleHandler> default_handler = (SimpleHandler*)(void*)m_cef_app->GetDefaultClient();
+
+	if (default_handler == NULL) return;
+	CefRefPtr<CefBrowser> default_browser = default_handler->GetBrowser();
+
+	if (default_browser == NULL) return;
+	CefRefPtr<CefFrame> default_frame = default_browser->GetMainFrame();
+
+	if (default_frame == NULL) return;
+	default_frame->ExecuteJavaScript(CefString(js.c_str()), default_frame->GetURL(), 0);
+}
+
 
 /****************************		节目相关函数		*****************************************/
 
@@ -332,7 +428,7 @@ json LoadjsonFile(CString strJsonName)
 	json jTemp = "";
 	if (FALSE == CheckFileExist(strConfigFile))
 	{
-		LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "LoadjsonFile", "[LoadjsonFile][%s]文件不存在", strConfigFile);
+		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "LoadjsonFile", "[LoadjsonFile][%s]文件不存在", strConfigFile);
 		return jTemp;
 	}
 	//1 先判断文件是否存在
@@ -341,14 +437,14 @@ json LoadjsonFile(CString strJsonName)
 	{
 		CString strLastErr = "";
 		strLastErr.Format("文件打开失败，可能权限不够！（%s）", strConfigFile);
-		LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "LoadjsonFile", "[LoadjsonFile][%s]", strLastErr);
+		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "LoadjsonFile", "[LoadjsonFile][%s]", strLastErr);
 		return jTemp;
 	}
 	file.GetStatus(status);
 	//2 再判断文件是否为空
 	if (status.m_size == 0)
 	{
-		LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "LoadjsonFile", "[LoadjsonFile][文件为空]");
+		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "LoadjsonFile", "[LoadjsonFile][文件为空]");
 		return jTemp;
 	}
 	else
@@ -408,7 +504,7 @@ BOOL CWeChatPrinterDlg::LoadTemporayJson()
 	return FALSE;
 EXIT:
 	DeleteFile(strTargetFile);
-	LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "LoadTemporayJson", strErrMsg);
+	LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "LoadTemporayJson", strErrMsg);
 	return FALSE;
 }
 
@@ -443,7 +539,7 @@ BOOL CWeChatPrinterDlg::LoadOfflinePacket()
 
 	if (nResult)// 解压失败
 	{
-		LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "LoadOfflineJson", "解压离线节目包失败！（错误代码：%d）", nResult);
+		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "LoadOfflineJson", "解压离线节目包失败！（错误代码：%d）", nResult);
 		return FALSE;
 	}
 	else// 解压成功
@@ -451,20 +547,20 @@ BOOL CWeChatPrinterDlg::LoadOfflinePacket()
 		json jOffline = LoadjsonFile(strResourcePath + templatezip);
 		if (jOffline == "")
 		{
-			LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "LoadOfflineJson", templatezip, "内容为空");
+			LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "LoadOfflineJson", templatezip, "内容为空");
 			return FALSE;
 		}
 		json jHead = jOffline["head"];
 		if (jHead.find("organcode") == jHead.end() || jHead.find("devicecode") == jHead.end())
 		{
-			LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "LoadOfflineJson", "获取[organcode]或[devicecode]字段失败");
+			LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "LoadOfflineJson", "获取[organcode]或[devicecode]字段失败");
 			return FALSE;
 		}
 		CString strOrgancode = jHead["organcode"].get<std::string>().c_str();
 		CString strDevicecode = jHead["devicecode"].get<std::string>().c_str();
 		if (strOrgancode.CompareNoCase(g_Config.m_strOrgCode) || strDevicecode.Find(g_Config.m_strDeviceCode) < 0)
 		{
-			LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "LoadOfflineJson", "字段值不符 Organcode = [%s],Devicecode = [%s] \n当前 Organcode = [%s],Devicecode = [%s]"
+			LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "LoadOfflineJson", "字段值不符 Organcode = [%s],Devicecode = [%s] \n当前 Organcode = [%s],Devicecode = [%s]"
 				, strOrgancode, strDevicecode, g_Config.m_strOrgCode, g_Config.m_strDeviceCode);
 			return FALSE;
 		}
@@ -493,13 +589,13 @@ BOOL CWeChatPrinterDlg::ChooseJson()
 	jDefault = LoadjsonFile(defaultJson);
 	if ("" == jDefault)
 	{
-		LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "ChooseJson", "jDefault 内容为空");
+		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "ChooseJson", "jDefault 内容为空");
 		return FALSE;
 	}
 	jTemplate = LoadjsonFile(g_Config.m_strTempalteJson);
 	if ("" == jTemplate)
 	{
-		LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "ChooseJson", "jTemplate 内容为空");
+		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "ChooseJson", "jTemplate 内容为空");
 		//没有template.json 就播放default.json
 		ChangeCurrentJson(jDefault);
 	}
@@ -562,7 +658,7 @@ BOOL CWeChatPrinterDlg::ParseNewTemplateOfH5(CString strJson, BOOL bIsSingleProg
 		if (jPage.is_array() == FALSE)
 		{
 			m_strLastErr = "解析template json[page]格式不正确";
-			LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "ParseNewTemplateOfH5", "[err][%s]", m_strLastErr);
+			LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "ParseNewTemplateOfH5", "[err][%s]", m_strLastErr);
 			return FALSE;
 		}
 		json jArray_edit = json::array();//创建一个空数组
@@ -913,7 +1009,7 @@ BOOL  FindContent(json jALL, vector<CString> &vecTemp)
 		if (jPage.is_array() == FALSE)
 		{
 			CString strLastErr = "解析template json[page]格式不正确";
-			LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "FindContent", "[err][%s]", strLastErr);
+			LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "FindContent", "[err][%s]", strLastErr);
 			return FALSE;
 		}
 
@@ -1032,12 +1128,12 @@ void DownLoadFile(CString strUrl, CString strLocalPath)
 		{
 			CString strLastErr = "";
 			strLastErr.Format("下载失败[%s]", g_Config.m_strHttpDwonloadUrl + strUrl);
-			LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "DownLoadFile", "[HTTP_Download()][err][%d][%s]",
+			LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "DownLoadFile", "[HTTP_Download()][err][%d][%s]",
 				nDownload, strLastErr);
 		}
 		else
 		{
-			LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "DownLoadFile", "[HTTP_Download()][ok][%s]",
+			LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "DownLoadFile", "[HTTP_Download()][ok][%s]",
 				g_Config.m_strHttpDwonloadUrl + strUrl);
 		}
 	}
@@ -1054,7 +1150,7 @@ BOOL CheckTimeLimit(CString strEndDate)
 		CString strMonth = strEndDate.Mid(5, 2);
 		CString strDay = strEndDate.Mid(8, 2);
 		strResult.Format("节目已过期，截至时间至%s年%s月%s日", strYear, strMonth, strDay);
-		LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "CheckTimeLimit", "%s", strResult);
+		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "CheckTimeLimit", "%s", strResult);
 		return TRUE;
 	}
 	return FALSE;
@@ -1071,7 +1167,7 @@ vector<int> getHours(CString strHours)
 		vector<CString>vecHM = SplitString(vecHours[i], "-");
 		if (vecHM.size() % 2 != 0)
 		{
-			LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "getHours", "日期格式错误[%s]", strHours);
+			LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "getHours", "日期格式错误[%s]", strHours);
 			return vecTime;
 		}
 		int iBeginTime = atoi(vecHM[0].Mid(0, 2) + vecHM[0].Mid(3, 2) + "00");
@@ -1185,12 +1281,12 @@ BOOL CWeChatPrinterDlg::ExtendDeadline(CString strProgammeID, CString strNewDead
 	json jALL = GetCurrentJson();
 	if (jALL == "")
 	{
-		LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "ExtendDeadline", "当前节目为空，异常");
+		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "ExtendDeadline", "当前节目为空，异常");
 		return FALSE;
 	}
 	if (jALL == jDefault)
 	{
-		LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ExtendDeadline", "当前是默认节目，无法延长时间");
+		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ExtendDeadline", "当前是默认节目，无法延长时间");
 		return FALSE;
 	}
 	json jData = jALL["body"]["data"];
@@ -1199,7 +1295,7 @@ BOOL CWeChatPrinterDlg::ExtendDeadline(CString strProgammeID, CString strNewDead
 		CString strItemID = jData["itemid"].get<std::string>().c_str();
 		if (strItemID.CompareNoCase(strProgammeID) != 0)
 		{
-			LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "ExtendDeadline", "指令的节目ID与节目ID不符");
+			LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "ExtendDeadline", "指令的节目ID与节目ID不符");
 			return FALSE;
 		}
 		jData["itemenddate"] = strNewDeadline;
@@ -1225,7 +1321,7 @@ BOOL CWeChatPrinterDlg::ExtendDeadline(CString strProgammeID, CString strNewDead
 		CString strItemListID = jData["itemlistid"].get<std::string>().c_str();
 		if (strItemListID.CompareNoCase(strProgammeID) != 0)
 		{
-			LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "ExtendDeadline", "指令的节目单ID与节目单ID不符");
+			LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "ExtendDeadline", "指令的节目单ID与节目单ID不符");
 			return FALSE;
 		}
 		jData["itemlistendtime"] = strNewDeadline;
@@ -1293,7 +1389,7 @@ BOOL CWeChatPrinterDlg::CheckUpdate()
 	CString strMsgPath = GetFullPath(AutoUpdateMsg);
 	if (FALSE == CheckFileExist(strMsgPath))
 	{
-		LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "CheckUpdate", " [%s]未找到", strMsgPath);
+		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "CheckUpdate", " [%s]未找到", strMsgPath);
 		CString strPath = GetFullPath(AutoUpdateEXE);
 		//StartProcess2(strPath, FALSE);//2020.12.29 失效了，打开闪退,原因：路径里有空格
 		StartProcess3(strPath);
@@ -1304,7 +1400,7 @@ BOOL CWeChatPrinterDlg::CheckUpdate()
 	int iProcessID = FindProcess("AutoUpdate.exe");
 	if (FALSE == bPassed || FALSE == bUpdated || iProcessID <= 0)
 	{
-		LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "CheckUpdate", "%d %d %d", bPassed, bUpdated, iProcessID);
+		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "CheckUpdate", "%d %d %d", bPassed, bUpdated, iProcessID);
 
 		if (iProcessID <= 0)//一定是由自动更新启动，且还未关闭的情况下启动本EXE。
 		{
@@ -1368,10 +1464,10 @@ BOOL CWeChatPrinterDlg::LoadRMQPubAndRMQSUBDLL()
 		goto EXIT;
 	}
 	_RMQ_CALLBACK(_Recv);
-	LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "LoadRMQPubAndRMQSUBDLL", "动态库加载成功");
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "LoadRMQPubAndRMQSUBDLL", "动态库加载成功");
 	return TRUE;
 EXIT:
-	LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "LoadRMQPubAndRMQSUBDLL", "动态库加载失败:[%s]", m_strLastErr);
+	LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "LoadRMQPubAndRMQSUBDLL", "动态库加载失败:[%s]", m_strLastErr);
 	return FALSE;
 }
 ////////////////////////////////////////////////////////////////////
@@ -1381,7 +1477,7 @@ BOOL CWeChatPrinterDlg::RMQ_SUBConnect()
 		|| g_Config.m_strAccount.GetLength() <= 0 || g_Config.m_strPassword.GetLength() <= 0 || g_Config.m_nModeName < 0
 		|| g_Config.m_strExchangeName.GetLength() <= 0 || g_Config.m_vecRouteKey.size() <= 0 || g_Config.m_nChannel < 0)
 	{
-		LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "RMQSUBConnect", "配置文件参数填写异常...");
+		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "RMQSUBConnect", "配置文件参数填写异常...");
 		return FALSE;
 	}
 	CString strRouteKey = "";
@@ -1397,10 +1493,10 @@ BOOL CWeChatPrinterDlg::RMQ_SUBConnect()
 
 	if (nState != 0)
 	{
-		LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "RMQSUBConnect", "连接RabbitMQ平台失败...");
+		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "RMQSUBConnect", "连接RabbitMQ平台失败...");
 		return FALSE;
 	}
-	LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQSUBConnect", "连接RabbitMQ平台成功...");
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQSUBConnect", "连接RabbitMQ平台成功...");
 
 	return TRUE;
 }
@@ -1412,17 +1508,17 @@ BOOL CWeChatPrinterDlg::RMQ_DealCustomMsg(CString strMsg)
 	strMsg.ReleaseBuffer();
 	if (vct[0].CompareNoCase("OFFLINE") != 0)
 	{
-		LOG(LOGTYPE_DEBUG, LOG_NAME_RMQ, "RMQ_DealCustomMsg", "[%s]", strMsg);
+		LOG2(LOGTYPE_DEBUG, LOG_NAME_RMQ, "RMQ_DealCustomMsg", "[%s]", strMsg);
 	}
 	else
 	{
-		LOG(LOGTYPE_DEBUG, LOG_NAME_OFFLINE, "RMQ_DealCustomMsg", "[%s]\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", strMsg);
+		LOG2(LOGTYPE_DEBUG, LOG_NAME_OFFLINE, "RMQ_DealCustomMsg", "[%s]\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", strMsg);
 	}
 	if (vct.size() >= 1)
 	{
 		if (vct[0].CompareNoCase("PUBLISH") == 0 && vct.size() == 4)
 		{
-			LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "收到更新节目指令");
+			LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "收到更新节目指令");
 			CString strJson = "";
 			m_nMode = 0;
 			if (vct[3] == "ITEMLIST") m_nMode = MULITIPLEPROGRAM;
@@ -1431,47 +1527,47 @@ BOOL CWeChatPrinterDlg::RMQ_DealCustomMsg(CString strMsg)
 			BOOL bRet = g_toolTrade.GetTemplate(g_Config.m_strHttpUrl, strJson, m_nMode);
 			if (bRet)
 			{
-				LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "GetTemplate 获取节目JSON成功");
+				LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "GetTemplate 获取节目JSON成功");
 				bRet = g_toolTrade.UpLoadProGrameStatus(g_Config.m_strHttpUrl, m_nMode, 2);
 				if (bRet)
 				{
-					LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "UpLoadProGrameStatus 上传正在下载节目状态成功");
+					LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "UpLoadProGrameStatus 上传正在下载节目状态成功");
 				}
 				else
 				{
-					LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "UpLoadProGrameStatus 上传正在下载节目状态失败[%s]", g_toolTrade.GetLastErr());
+					LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "UpLoadProGrameStatus 上传正在下载节目状态失败[%s]", g_toolTrade.GetLastErr());
 				}
 				bRet = ParseNewTemplateOfH5(strJson, m_nMode == SINGLEPROGRAM ? TRUE : FALSE);
 				if (bRet)
 				{
-					LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "ParseNewTemplateOfH5 解析更新节目成功");
+					LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "ParseNewTemplateOfH5 解析更新节目成功");
 					g_strItemid = "";
 					SetTimer(TIMER_CHOOSEPROGAME, 10, NULL);
 				}
 				else
 				{
-					LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "ParseNewTemplateOfH5 解析更新节目失败");
+					LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "ParseNewTemplateOfH5 解析更新节目失败");
 				}
 				//上传是否下载模板成功信息
 				bRet = g_toolTrade.UpLoadProGrameStatus(g_Config.m_strHttpUrl, m_nMode, bRet == TRUE ? 3 : 4);
 				if (bRet)
 				{
-					LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "UpLoadProGrameStatus 上传更新节目消息成功");
+					LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "UpLoadProGrameStatus 上传更新节目消息成功");
 				}
 				else
 				{
-					LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "UpLoadProGrameStatus 上传更新节目消息失败[%s]", g_toolTrade.GetLastErr());
+					LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "UpLoadProGrameStatus 上传更新节目消息失败[%s]", g_toolTrade.GetLastErr());
 				}
 				SetTimer(TIMER_CHECKINCOMPELEDFILE, 1000, NULL);
 			}
 			else
 			{
-				LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "GetTemplate 获取更新节目失败 [%s]", g_toolTrade.GetLastErr());
+				LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "GetTemplate 获取更新节目失败 [%s]", g_toolTrade.GetLastErr());
 			}
 		}
 		else if (vct[0].CompareNoCase("DEFAULT") == 0)
 		{
-			LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "取消发布，加载默认节目");
+			LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "取消发布，加载默认节目");
 			//避免紧急插播状态对后续程序加载造成影响
 			g_bIsTemproaryOn = FALSE;
 			CString strJsonPath = GetFullPath(g_Config.m_strRelatePath + g_Config.m_strTemporaryJson);
@@ -1482,7 +1578,7 @@ BOOL CWeChatPrinterDlg::RMQ_DealCustomMsg(CString strMsg)
 		}
 		else if (vct[0].CompareNoCase("OFFLINE") == 0)
 		{
-			LOG(LOGTYPE_DEBUG, LOG_NAME_OFFLINE, "RMQ_DealCustomMsg", "收到上送设备状态消息");
+			LOG2(LOGTYPE_DEBUG, LOG_NAME_OFFLINE, "RMQ_DealCustomMsg", "收到上送设备状态消息");
 			SetEvent(m_hDviceStatusEvent);
 			// 			if (FALSE == g_bIsOnLinePro)
 			// 			{
@@ -1492,7 +1588,7 @@ BOOL CWeChatPrinterDlg::RMQ_DealCustomMsg(CString strMsg)
 		}
 		else if (vct[0].CompareNoCase("DEVICE") == 0)
 		{
-			LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "收到更新程序通知");
+			LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "收到更新程序通知");
 			CString strPath = GetFullPath(AutoUpdateEXE);
 			StartProcess3(strPath);
 			//StartProcess(strPath, "", 0, 0);
@@ -1504,7 +1600,7 @@ BOOL CWeChatPrinterDlg::RMQ_DealCustomMsg(CString strMsg)
 			vecTime.assign(vct.begin() + 3, vct.end());
 			if (ExtendDeadline(vct[1], vct[2], vecTime))
 			{
-				LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "设置新的截止时间到%s", vct[2]);
+				LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "设置新的截止时间到%s", vct[2]);
 				SetTimer(TIMER_CHOOSEPROGAME, 10, NULL);
 			}
 		}
@@ -1514,12 +1610,12 @@ BOOL CWeChatPrinterDlg::RMQ_DealCustomMsg(CString strMsg)
 			{
 				if (vct[2].CompareNoCase("TURNOFF") == 0)//关机
 				{
-					LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "设备即将关机");
+					LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "设备即将关机");
 					ShutDown();
 				}
 				else if (vct[2].CompareNoCase("TURNBACK") == 0)//重启
 				{
-					LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "设备即将重启");
+					LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "设备即将重启");
 					Reboot();
 				}
 				else if (vct[2].CompareNoCase("VOLUMECONTRO") == 0)//控制音量
@@ -1530,7 +1626,7 @@ BOOL CWeChatPrinterDlg::RMQ_DealCustomMsg(CString strMsg)
 					if (nVolumn >= 0 && nVolumn <= 100)
 					{
 						SetVolumeLevel(nVolumn);
-						LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "当前音量设置为 %d", nVolumn);
+						LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "当前音量设置为 %d", nVolumn);
 					}
 				}
 				else if (vct[2].CompareNoCase("SCREENCUT") == 0)//截屏上传
@@ -1541,16 +1637,16 @@ BOOL CWeChatPrinterDlg::RMQ_DealCustomMsg(CString strMsg)
 					BOOL bRet = g_toolTrade.UpLoadPic(g_Config.m_strHttpUrl, strBase64Pic, strPicName);
 					if (bRet)
 					{
-						LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "UpLoadPic 上传截图成功");
+						LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "UpLoadPic 上传截图成功");
 					}
 					else
 					{
-						LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "UpLoadPic 上传截图失败 [%s]", g_toolTrade.GetLastErr());
+						LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "UpLoadPic 上传截图失败 [%s]", g_toolTrade.GetLastErr());
 					}
 				}
 				else if (vct[2].CompareNoCase("TURNSTATUS") == 0)
 				{
-					LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "主动刷新通知成功");
+					LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "主动刷新通知成功");
 					SetEvent(m_hDviceStatusEvent);
 				}
 			}
@@ -1559,24 +1655,24 @@ BOOL CWeChatPrinterDlg::RMQ_DealCustomMsg(CString strMsg)
 		{
 			if (g_strItemid == vct[1])
 			{
-				LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "节目的itemid为%s,与当前相同，不切换", g_strItemid);
+				LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "节目的itemid为%s,与当前相同，不切换", g_strItemid);
 				return TRUE;
 			}
 			g_strItemid = vct[1];
 			bUnderSwitchMode = TRUE;
 			SetTimer(TIMER_CHOOSEPROGAME, 10, NULL);
-			LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "切换节目的itemid为%s", g_strItemid);
+			LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "切换节目的itemid为%s", g_strItemid);
 		}
 		else if (vct[0].CompareNoCase("CONTROLRECOVERY") == 0)
 		{
 			bUnderSwitchMode = FALSE;
 			SetTimer(TIMER_CHOOSEPROGAME, 10, NULL);
-			LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "恢复正常播放");
+			LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "恢复正常播放");
 		}
 		else
 		{
 			// 未知消息
-			LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "[未知消息][%s]", vct[0]);
+			LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "[未知消息][%s]", vct[0]);
 		}
 	}
 	return TRUE;
@@ -1626,14 +1722,14 @@ DWORD CWeChatPrinterDlg::ReSignThreadContent(LPVOID pParam)
 			BOOL bRet = g_toolTrade.Login(g_Config.m_strHttpUrl, m_iNextBitSpace, m_strLastSignTime, m_OnlineTime,m_strOrgCode,m_strDeviceType);
 			if (FALSE == bRet)
 			{
-				LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "ReSignThreadContent", "[g_toolTrade.Login][err][%s]", g_toolTrade.GetLastErr());
+				LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "ReSignThreadContent", "[g_toolTrade.Login][err][%s]", g_toolTrade.GetLastErr());
 				//签到失败，20s重新签到一次
 				SetTimer(TIMER_RESIGN, 20 * 1000, NULL);
-				LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "ReSignThreadContent", "签到失败，20s后重新签到...");
+				LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "ReSignThreadContent", "签到失败，20s后重新签到...");
 			}
 			else
 			{
-				LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ReSignThreadContent", "签到成功");
+				LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ReSignThreadContent", "签到成功");
 				//覆盖原先的机构号和设备类型，再加载RMQ配置，再连接平台
 				g_Config.WriteStringToCfgDev("RMQ","OrgCode", m_strOrgCode);
 				g_Config.WriteStringToCfgDev("RMQ", "DeviceType", m_strDeviceType);
@@ -1671,13 +1767,13 @@ DWORD CWeChatPrinterDlg::DeviceStatusThreadContent(LPVOID pParam)
 			{
 				CTime tmBegin = CTime::GetCurrentTime();
 				CString str_Begin = tmBegin.Format("%Y%m%d%H%M%S");
-				LOG(LOGTYPE_DEBUG, LOG_NAME_OFFLINE, "DeviceStatusThreadContent", "[设备状态上传成功！][%s]", str_Begin);
+				LOG2(LOGTYPE_DEBUG, LOG_NAME_OFFLINE, "DeviceStatusThreadContent", "[设备状态上传成功！][%s]", str_Begin);
 			}
 			else
 			{
 				CTime tmBegin = CTime::GetCurrentTime();
 				CString str_Begin = tmBegin.Format("%Y%m%d%H%M%S");
-				LOG(LOGTYPE_DEBUG, LOG_NAME_OFFLINE, "DeviceStatusThreadContent", "[设备状态上传失败！][%s][%s]", str_Begin, g_toolTrade.GetLastErr());
+				LOG2(LOGTYPE_DEBUG, LOG_NAME_OFFLINE, "DeviceStatusThreadContent", "[设备状态上传失败！][%s][%s]", str_Begin, g_toolTrade.GetLastErr());
 			}
 		}
 		ResetEvent(m_hDviceStatusEvent);
@@ -1716,7 +1812,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 			{
 				ChangeCurrentJson(jDefault);
 				jTemp = jDefault;
-				LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "当前无其他节目，开始播放默认节目，全天");
+				LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "当前无其他节目，开始播放默认节目，全天");
 			}
 			//单节目		
 			if (jTemp["body"].find("datalist") == jTemp["body"].end())
@@ -1731,7 +1827,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 					{
 						jForIE = jData["itemtemplatejson"];
 						SetTimer(TIMER_LOADMAINFRAME, 10, NULL);
-						LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放当前节目，单节目，全天");
+						LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放当前节目，单节目，全天");
 					}
 					//2 分时段播放模式
 					else if (PLAY_DIVIDE == iPlayMode)
@@ -1748,7 +1844,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 								SetTimer(TIMER_LOADMAINFRAME, 10, NULL);
 								iCloseRemainingTime = GetCloseTime(vecHM, iCurTime);
 								SetTimer(TIMER_CHOOSEPROGAME, iCloseRemainingTime * 1000, NULL);
-								LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放当前节目，单节目，将于%d分钟后切换到其他节目", (int)(iCloseRemainingTime/60));
+								LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放当前节目，单节目，将于%d分钟后切换到其他节目", (int)(iCloseRemainingTime/60));
 								break;
 							}
 						}
@@ -1759,7 +1855,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 							SetTimer(TIMER_LOADMAINFRAME, 10, NULL);
 							iRemainingTime = GetWaitTime(vecHM, iCurTime);
 							SetTimer(TIMER_CHOOSEPROGAME, iRemainingTime * 1000, NULL);
-							LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放默认节目，单节目，将于%d分钟后切换当前节目", (int)(iRemainingTime / 60));
+							LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放默认节目，单节目，将于%d分钟后切换当前节目", (int)(iRemainingTime / 60));
 
 						}
 					}
@@ -1776,7 +1872,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 						g_bIsTemproaryOn = TRUE;
 						jForIE = jData["itemtemplatejson"];
 						SetTimer(TIMER_LOADMAINFRAME, 10, NULL);
-						LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放紧急插播节目，全天");
+						LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放紧急插播节目，全天");
 					}
 					//2 分时段播放模式
 					else if (PLAY_DIVIDE == iPlayMode)
@@ -1794,7 +1890,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 								SetTimer(TIMER_LOADMAINFRAME, 10, NULL);
 								iCloseRemainingTime = GetCloseTime(vecHM, iCurTime);
 								SetTimer(TIMER_CHOOSEPROGAME, iCloseRemainingTime * 1000, NULL);
-								LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放紧急插播节目，将于%d分钟后切换到其他节目", (int)(iCloseRemainingTime / 60));
+								LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放紧急插播节目，将于%d分钟后切换到其他节目", (int)(iCloseRemainingTime / 60));
 								break;
 							}
 						}
@@ -1806,7 +1902,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 							ChangeCurrentJson(jTemplate);											//加载原先的节目
 							g_bIsTemproaryOn = FALSE;
 							SetTimer(TIMER_CHOOSEPROGAME, 10, NULL);
-							LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放紧急插播节目，将于%d分钟后切换当前节目", (int)(iRemainingTime / 60));
+							LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放紧急插播节目，将于%d分钟后切换当前节目", (int)(iRemainingTime / 60));
 						}
 					}
 				}
@@ -1908,7 +2004,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 						SetTimer(TIMER_LOADMAINFRAME, 10, NULL);
 						iCloseRemainingTime = GetCloseTime(vecHM, iCurTime);
 						SetTimer(TIMER_CHOOSEPROGAME, iCloseRemainingTime * 1000, NULL);
-						LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放多节目，将于%d分钟后切换到其他节目", (int)(iCloseRemainingTime / 60));
+						LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放多节目，将于%d分钟后切换到其他节目", (int)(iCloseRemainingTime / 60));
 						break;
 					}
 					// 当在所有的节目里都找不到播出时间时，倒计时最近的播放
@@ -1921,11 +2017,11 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 						if (iRemainingTime >= 0)
 						{
 							SetTimer(TIMER_CHOOSEPROGAME, iRemainingTime * 1000, NULL);
-							LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放默认节目，将于%d分钟后切换多节目", (int)(iRemainingTime / 60));
+							LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放默认节目，将于%d分钟后切换多节目", (int)(iRemainingTime / 60));
 						}
 						else
 						{
-							LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "当日无符合是简单的多节目，开始播放默认节目");
+							LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "当日无符合是简单的多节目，开始播放默认节目");
 						}
 						break;
 					}
@@ -1957,8 +2053,8 @@ DWORD CWeChatPrinterDlg::HeartBeatThreadContent(LPVOID pParam)
 			BOOL bRet = g_toolTrade.HeartBeat(g_Config.m_strHttpUrl, m_iNextBitSpace, m_strLastSignTime, m_OnlineTime);
 			if (FALSE == bRet)
 			{
-				LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "HeartBeat", "[g_toolTrade.HeartBeat][err][%s]", g_toolTrade.GetLastErr());
-				LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "HeartBeatThreadContent", "访问心跳接口失败...");
+				LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "HeartBeat", "[g_toolTrade.HeartBeat][err][%s]", g_toolTrade.GetLastErr());
+				LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "HeartBeatThreadContent", "访问心跳接口失败...");
 			}
 		}
 	}
@@ -2294,7 +2390,7 @@ BOOL CWeChatPrinterDlg::OnCommand(WPARAM wParam, LPARAM lParam)
 			int nResult = m_admin.DoModal();
 			if (nResult == 1)
 			{
-				LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnCommand", "用户输入密码：3333 后程序退出");
+				LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnCommand", "用户输入密码：3333 后程序退出");
 				EndDialog(TRUE);
 			}
 			::SetWindowPos(GetSafeHwnd(), HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);//最前端
@@ -2309,20 +2405,20 @@ BOOL CWeChatPrinterDlg::OnCommand(WPARAM wParam, LPARAM lParam)
 
 BOOL CWeChatPrinterDlg:: StartProcess3(CString strpath)
 {
-	LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "StartProcess3", "[%s]", "\"" + strpath + "\"");
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "StartProcess3", "[%s]", "\"" + strpath + "\"");
  	BOOL b1 = StartProcess2("\"" + strpath + "\"", TRUE);//成功与失败都是返回1
 //	BOOL b2 = StartProcess(strpath, "", 0, 0);
 //  	if (b1 == FALSE)
 //  	{
 // 		BOOL b2 = StartProcess(strpath, "", 0, 0);
-// 		LOG(LOGTYPE_ERROR, LOG_NAME_DEBUG, "StartProcess3", "StartProcess 失效[%d]，启动StartProcess2 [%d]", b1, b2);
+// 		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "StartProcess3", "StartProcess 失效[%d]，启动StartProcess2 [%d]", b1, b2);
 //  	}
 	return TRUE;
 }
 
 
 
-int UrlEncodeUtf8(LPCSTR pszUrl, LPSTR pszEncode, int nEncodeLen)
+int UrlEncodeUtf8_(LPCSTR pszUrl, LPSTR pszEncode, int nEncodeLen)
 {
 	int nRes = 0;
 	//定义变量
@@ -2434,7 +2530,7 @@ BOOL HTTP_Download2(CString strURL, CString strFilePath, CString strUsername, CS
 	CString				strDownloadFile = "";
 	const int nBufferSize = 4096;
 	TCHAR szURL[nBufferSize] = { 0 };
-	UrlEncodeUtf8(strURL, szURL, nBufferSize);
+	UrlEncodeUtf8_(strURL, szURL, nBufferSize);
 	strURL = szURL;
 
 	//分解URL
@@ -2522,7 +2618,7 @@ BOOL HTTP_Download2(CString strURL, CString strFilePath, CString strUsername, CS
 
 			if (dwDownloadSize != dwFileLen)
 			{
-				LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "HTTP_Download2", "实际下载dwDownloadSize =%ld，应下载dwFileLen=%ld，[%s]下载失败", dwDownloadSize,dwFileLen, strFilePath);
+				LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "HTTP_Download2", "实际下载dwDownloadSize =%ld，应下载dwFileLen=%ld，[%s]下载失败", dwDownloadSize,dwFileLen, strFilePath);
 				bRes = FALSE;
 			}
 
@@ -2591,9 +2687,9 @@ void GetSystemMemoryInfo()
 	float percent_memory = ((float)usePhys / (float)physical_memory) * 100;
 	float percent_memory_virtual = ((float)useVirtual / (float)virtual_totalmemory) * 100;
 	strInfo.Format("物理内存使用率:%.2f%% 物理内存:%lld MB 可用物理内存：%lld MB\n", percent_memory, physical_memory, avalid_memory);
-	LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "GetSystemMemoryInfo", "%s", strInfo);
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "GetSystemMemoryInfo", "%s", strInfo);
 	strInfo.Format("虚拟内存使用率:%.2f%% 虚拟内存:%lld MB 可用虚拟内存：%lld MB \n", percent_memory_virtual, virtual_totalmemory, virtual_memory);
-	LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "GetSystemMemoryInfo", "%s", strInfo);
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "GetSystemMemoryInfo", "%s", strInfo);
 
 	SYSTEM_INFO si;
 	GetSystemInfo(&si);
@@ -2634,13 +2730,13 @@ void GetSystemMemoryInfo()
 		}
 	}
 	strInfo.Format("进程id:%d 已使用内存 %d MB\n", pid, usedMemory);
-	LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "GetSystemMemoryInfo", "%s", strInfo);
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "GetSystemMemoryInfo", "%s", strInfo);
 	CloseHandle(handle);
 
 	//虚拟内存使用率 >85 或者  已使用内存 大雨1100 MB 就重启程序
 	if (percent_memory_virtual >85 || usedMemory >1100)
 	{
-		LOG(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "GetSystemMemoryInfo", "程序即将重启");
+		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "GetSystemMemoryInfo", "程序即将重启");
 		RobotProgamme();
 	}
 }

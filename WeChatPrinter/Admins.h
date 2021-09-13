@@ -5,7 +5,7 @@
 
 class CAdmins : public CImageDlg
 {
-	DECLARE_DYNAMIC(CAdmins)
+//	DECLARE_DYNAMIC(CAdmins)
 
 public:
 	CAdmins(CWnd* pParent = NULL);   // 标准构造函数

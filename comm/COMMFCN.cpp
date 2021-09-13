@@ -224,3 +224,17 @@ CString GetFileName(CString strFilePath)
 	str.Replace("\\", "/");
 	return str.Mid(str.ReverseFind('/')+1, str.GetLength());
 }
+
+#include <iostream>
+#include <Windows.h>
+using namespace std;
+#include <tchar.h>
+#include <fstream>
+#include <sstream>
+#include "myos.h"
+#include <io.h>
+
+BOOL CheckFileExist(CString filepath)
+{
+	return exist(filepath.GetBuffer(0)) ? TRUE : FALSE;
+}

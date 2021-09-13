@@ -45,7 +45,7 @@ CString CTrade::AddMsgContent(CString strType,CString strBody,CString strReserve
 	CString serialnumber = GetCurTime(DATE_NORMAL).c_str() + g_Config.m_strOrgCode + g_Config.m_strDeviceCode;
 // 	if (serialnumber.GetLength() > 36)
 // 	{
-// 		LOG(LOGTYPE_DEBUG, LOG_NAME_TRADE, "AddMsgContent", "serialnumber 流水号过长[%d]", serialnumber.GetLength());
+// 		LOG2(LOGTYPE_DEBUG, LOG_NAME_TRADE, "AddMsgContent", "serialnumber 流水号过长[%d]", serialnumber.GetLength());
 // 		return "";
 // 	}
 // 	int iPownum = 36 - serialnumber.GetLength();
@@ -85,11 +85,11 @@ CString CTrade::AddMsgContent(CString strType,CString strBody,CString strReserve
 	{
 		if (strType.CompareNoCase("2011000008") != 0)
 		{
-			LOG(LOGTYPE_DEBUG, LOG_NAME_TRADE, g_strFunName, "请求报文为\n%s", strContent);
+			LOG2(LOGTYPE_DEBUG, LOG_NAME_TRADE, g_strFunName, "请求报文为\n%s", strContent);
 		}
 		else
 		{
-			LOG(LOGTYPE_DEBUG, LOG_NAME_OFFLINE, g_strFunName, "请求报文为\n%s", strContent);
+			LOG2(LOGTYPE_DEBUG, LOG_NAME_OFFLINE, g_strFunName, "请求报文为\n%s", strContent);
 		}
 	}
 
@@ -126,7 +126,7 @@ BOOL CTrade::Login(const char* pUrl, int &iNextBitSpace, CString &strLastSignTim
 	strGBKRsp = strOut;
 #endif
 	ConvertUtf8ToGBK(strGBKRsp);
-	LOG(LOGTYPE_DEBUG, LOG_NAME_TRADE, "Login", "返回报文为\n%s", strGBKRsp);
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_TRADE, "Login", "返回报文为\n%s", strGBKRsp);
 	string strGBK = strGBKRsp;
 	if (FALSE == IsJsonData(strGBK))
 	{
@@ -199,7 +199,7 @@ BOOL CTrade::GetTemplate(const char* pUrl, CString &strJson ,int itemtype)
 	strGBKRsp = strOut;
 #endif
 	ConvertUtf8ToGBK(strGBKRsp);
-	LOG(LOGTYPE_DEBUG, LOG_NAME_TRADE, "GetTemplate", "返回报文为\n%s",strGBKRsp);
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_TRADE, "GetTemplate", "返回报文为\n%s",strGBKRsp);
 	string strGBK = strGBKRsp;
 
 	if (FALSE == IsJsonData(strGBK))
@@ -279,7 +279,7 @@ BOOL CTrade::UpLoadProGrameStatus(const char* pUrl, int itemtype, int istatus)
 	strGBKRsp = strOut;
 #endif
 	ConvertUtf8ToGBK(strGBKRsp);
-	LOG(LOGTYPE_DEBUG, LOG_NAME_TRADE, "UpLoadProGrameStatus", "返回报文为\n%s", strGBKRsp);
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_TRADE, "UpLoadProGrameStatus", "返回报文为\n%s", strGBKRsp);
 	string strGBK = strGBKRsp;
 
 	if (FALSE == IsJsonData(strGBK))
@@ -387,7 +387,7 @@ BOOL CTrade::UpLoadPic(const char* pUrl, CString strBase64Pic, CString strPicNam
 	strGBKRsp = strOut;
 #endif	
 	ConvertUtf8ToGBK(strGBKRsp);
-	LOG(LOGTYPE_DEBUG, LOG_NAME_TRADE, "UpLoadPic", "返回报文为\n%s", strGBKRsp);
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_TRADE, "UpLoadPic", "返回报文为\n%s", strGBKRsp);
 	string strGBK = strGBKRsp;
 
 	if (FALSE == IsJsonData(strGBK))
@@ -443,7 +443,7 @@ BOOL CTrade::HeartBeat(const char* pUrl, int &iNextBitSpace, CString &strLastSig
 	CString strOut = Decode_3Des(g_str3DesPrivateKey, strGBKRsp);
 	strGBKRsp = strOut;
 #endif	ConvertUtf8ToGBK(strGBKRsp);
-	LOG(LOGTYPE_DEBUG, LOG_NAME_TRADE, "HeartBeat", "返回报文为\n%s", strGBKRsp);
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_TRADE, "HeartBeat", "返回报文为\n%s", strGBKRsp);
 	string strGBK = strGBKRsp;
 
 	if (FALSE == IsJsonData(strGBK))

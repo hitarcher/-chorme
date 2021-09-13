@@ -35,8 +35,12 @@ using json = nlohmann::json;
 
 //工具函数头文件
 #include "ToolsFunction.h"
-
+//内存函数相关头文件
 #include <psapi.h>
+
+//CEF3
+#include "mycef.h"
+#include "simple_app.h"
 /************************************************************************/
 /*                              常    量                                */
 /************************************************************************/
@@ -135,6 +139,13 @@ private:
 
 	CString m_strOrgCode;
 	CString m_strDeviceType;
+
+	CefRefPtr<SimpleApp> m_cef_app;
+	void cef_init();
+	void cef_close();
+	void cef_load_url(std::string url);
+	void cef_exec_js(std::string js);
+
 private:
 	// 加载主界面
 	BOOL LoadMainFrame();

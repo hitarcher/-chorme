@@ -16,7 +16,7 @@
 
 // CAdmins ¶Ô»°¿ò
 
-IMPLEMENT_DYNAMIC(CAdmins, CImageDlg)
+//IMPLEMENT_DYNAMIC(CAdmins, CImageDlg)
 
 CAdmins::CAdmins(CWnd* pParent /*=NULL*/)
 	: CImageDlg(CAdmins::IDD, pParent)

@@ -35,7 +35,7 @@ DWORD CShell::Start(CString strCommand)
 	sat.lpSecurityDescriptor = NULL;
 	if (CreatePipe(&m_hReadPipe, &m_hWritePipe, &sat, NULL) == FALSE) {
 		str_Error = GetLastSysErr();
-		LOG(LOGTYPE_ERROR, LOG_NAME_SHELL, "Start", "创建管道失败[%s]", str_Error);
+		LOG2(LOGTYPE_ERROR, LOG_NAME_SHELL, "Start", "创建管道失败[%s]", str_Error);
 		g_pFunAddr(0);
 		return 2;
 	}
@@ -50,7 +50,7 @@ DWORD CShell::Start(CString strCommand)
 	startupinfo.wShowWindow = SW_HIDE;
 	if (CreateProcess(NULL, strCommand.GetBuffer(0), NULL, NULL, TRUE, 0, NULL, NULL, &startupinfo, &m_pinfo) == FALSE) {
 		str_Error = GetLastSysErr();
-		LOG(LOGTYPE_ERROR, LOG_NAME_SHELL, "Start", "创建进程（adb）失败[%s]", str_Error);
+		LOG2(LOGTYPE_ERROR, LOG_NAME_SHELL, "Start", "创建进程（adb）失败[%s]", str_Error);
 		g_pFunAddr(1);
 		return 3;
 	}
@@ -63,7 +63,7 @@ DWORD CShell::Start(CString strCommand)
 	m_hThread = CreateThread(NULL, 0, ShellProc, this, 0, &dwThread);//这个参数你根据你的需要决定要不要
 	if (m_hThread == NULL) {
 		str_Error = GetLastSysErr();
-		LOG(LOGTYPE_ERROR, LOG_NAME_SHELL, "Start", "创建线程失败[%s]", str_Error);
+		LOG2(LOGTYPE_ERROR, LOG_NAME_SHELL, "Start", "创建线程失败[%s]", str_Error);
 		g_pFunAddr(2);
 		return 4;
 	}

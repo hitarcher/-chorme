@@ -34,6 +34,9 @@
     <Filter Include="HTTP请求类">
       <UniqueIdentifier>{8850f23d-db3f-4ddd-837e-23ab32b20bdf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="cef">
+      <UniqueIdentifier>{49c7b6bc-0cfa-4e31-aca1-6b445c78512b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -189,6 +192,21 @@
     <ClInclude Include="Admins.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="..\cef\mycef.h">
+      <Filter>cef</Filter>
+    </ClInclude>
+    <ClInclude Include="..\cef\simple_app.h">
+      <Filter>cef</Filter>
+    </ClInclude>
+    <ClInclude Include="..\cef\simple_handler.h">
+      <Filter>cef</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\myos.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mystring.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -232,6 +250,15 @@
     </ClCompile>
     <ClCompile Include="Admins.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\cef\simple_app.cc">
+      <Filter>cef</Filter>
+    </ClCompile>
+    <ClCompile Include="..\cef\simple_handler.cc">
+      <Filter>cef</Filter>
+    </ClCompile>
+    <ClCompile Include="..\cef\simple_handler_win.cc">
+      <Filter>cef</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
