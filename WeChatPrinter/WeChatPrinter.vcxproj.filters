@@ -1,0 +1,252 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="IE浏览器">
+      <UniqueIdentifier>{9c1ea28a-9db3-4c02-9f68-4134d7b2a095}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="主界面">
+      <UniqueIdentifier>{c8d86c6a-85b0-462f-ab41-3584849e8f3f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="trade">
+      <UniqueIdentifier>{f27b9b94-4a68-49f3-88a7-8d693a8fc4f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include">
+      <UniqueIdentifier>{94f861d7-4548-477d-b9ab-dbe35778b959}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="comm">
+      <UniqueIdentifier>{ea33fa02-af17-4aa9-80dc-e6b3b59cc4c5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="config">
+      <UniqueIdentifier>{915f379f-9f42-49a3-9d1a-e2cf48c2b4f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HTTP请求类">
+      <UniqueIdentifier>{8850f23d-db3f-4ddd-837e-23ab32b20bdf}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CWebBrowser2.h">
+      <Filter>IE浏览器</Filter>
+    </ClInclude>
+    <ClInclude Include="WeChatPrinterDlg.h">
+      <Filter>主界面</Filter>
+    </ClInclude>
+    <ClInclude Include="WeChatPrinter.h">
+      <Filter>主界面</Filter>
+    </ClInclude>
+    <ClInclude Include="Trade.h">
+      <Filter>trade</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\BasePack.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\BasePrint.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Client.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\CommonFun.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\CommonUI.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\CommTbl.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\DESTools.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\DLL.H">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\FileOper.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Ftp.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\ImageBase.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\ImageDlg.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\InputLanguage.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\LOG.H">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\LOG2.H">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\MD5.H">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Ping.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\PlayerCtrl.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\RS232C.H">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\sharememory.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\sqlite3.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\sqlite3ext.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\SqliteFun.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\TCPClient.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\TCPServer.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tinystr.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\tinyxml.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\InterfaceReg.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Config\Config.h">
+      <Filter>config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\SocketComm.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\TCPSocketClient.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\UDPSocketClient.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\http\HttpClient.h">
+      <Filter>HTTP请求类</Filter>
+    </ClInclude>
+    <ClInclude Include="json.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\comm\commfun.h">
+      <Filter>comm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\comm\COMMFCN.h">
+      <Filter>comm</Filter>
+    </ClInclude>
+    <ClInclude Include="Shell.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="tinyzipinterface.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="MakePNG.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Base64.h">
+      <Filter>comm</Filter>
+    </ClInclude>
+    <ClInclude Include="ToolsFunction.h">
+      <Filter>comm</Filter>
+    </ClInclude>
+    <ClInclude Include="CommunicateInterface.h">
+      <Filter>comm</Filter>
+    </ClInclude>
+    <ClInclude Include="Admins.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CWebBrowser2.cpp">
+      <Filter>IE浏览器</Filter>
+    </ClCompile>
+    <ClCompile Include="WeChatPrinterDlg.cpp">
+      <Filter>主界面</Filter>
+    </ClCompile>
+    <ClCompile Include="WeChatPrinter.cpp">
+      <Filter>主界面</Filter>
+    </ClCompile>
+    <ClCompile Include="Trade.cpp">
+      <Filter>trade</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Config\Config.cpp">
+      <Filter>config</Filter>
+    </ClCompile>
+    <ClCompile Include="..\http\HttpClient.cpp">
+      <Filter>HTTP请求类</Filter>
+    </ClCompile>
+    <ClCompile Include="..\comm\commfun.cpp">
+      <Filter>comm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\comm\COMMFCN.cpp">
+      <Filter>comm</Filter>
+    </ClCompile>
+    <ClCompile Include="Shell.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MakePNG.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Base64.cpp">
+      <Filter>comm</Filter>
+    </ClCompile>
+    <ClCompile Include="ToolsFunction.cpp">
+      <Filter>comm</Filter>
+    </ClCompile>
+    <ClCompile Include="Admins.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="WeChatPrinter.rc">
+      <Filter>资源文件</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\WeChatPrinter.rc2">
+      <Filter>资源文件</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\WeChatPrinter.ico">
+      <Filter>资源文件</Filter>
+    </Image>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,204 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{C1EB4B39-868B-4DE6-BB7B-506217F35AE0}</ProjectGuid>
+    <RootNamespace>WeChatPrinter</RootNamespace>
+    <Keyword>MFCProj</Keyword>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140_xp</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140_xp</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>../bin/</OutDir>
+    <IncludePath>$(SolutionDir)http\;$(SolutionDir)socket\;$(SolutionDir)config\;$(SolutionDir)comm\;$(SolutionDir)json\;$(SolutionDir)include\;./;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)lib\;$(LibraryPath)</LibraryPath>
+    <TargetName>InfoPublishScreenDebug</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>../bin/</OutDir>
+    <IncludePath>$(SolutionDir)http\;$(SolutionDir)socket\;$(SolutionDir)config\;$(SolutionDir)comm\;$(SolutionDir)json\;$(SolutionDir)include\;./;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)lib\;$(LibraryPath)</LibraryPath>
+    <TargetName>InfoPublishScreen</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions);NO_WARN_MBCS_MFC_DEPRECATION</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+    </Link>
+    <Midl>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <ValidateAllParameters>true</ValidateAllParameters>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </Midl>
+    <ResourceCompile>
+      <Culture>0x0804</Culture>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions);NO_WARN_MBCS_MFC_DEPRECATION</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
+    </Link>
+    <Midl>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <ValidateAllParameters>true</ValidateAllParameters>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </Midl>
+    <ResourceCompile>
+      <Culture>0x0804</Culture>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\comm\COMMFCN.h" />
+    <ClInclude Include="..\comm\commfun.h" />
+    <ClInclude Include="..\Config\Config.h" />
+    <ClInclude Include="..\http\HttpClient.h" />
+    <ClInclude Include="..\include\BasePack.h" />
+    <ClInclude Include="..\include\BasePrint.h" />
+    <ClInclude Include="..\include\Client.h" />
+    <ClInclude Include="..\include\CommonFun.h" />
+    <ClInclude Include="..\include\CommonUI.h" />
+    <ClInclude Include="..\include\CommTbl.h" />
+    <ClInclude Include="..\include\DESTools.h" />
+    <ClInclude Include="..\include\DLL.H" />
+    <ClInclude Include="..\include\FileOper.h" />
+    <ClInclude Include="..\include\Ftp.h" />
+    <ClInclude Include="..\include\ImageBase.h" />
+    <ClInclude Include="..\include\ImageDlg.h" />
+    <ClInclude Include="..\include\InputLanguage.h" />
+    <ClInclude Include="..\include\InterfaceReg.h" />
+    <ClInclude Include="..\include\LOG.H" />
+    <ClInclude Include="..\include\LOG2.H" />
+    <ClInclude Include="..\include\MD5.H" />
+    <ClInclude Include="..\include\Ping.h" />
+    <ClInclude Include="..\include\PlayerCtrl.h" />
+    <ClInclude Include="..\include\RS232C.H" />
+    <ClInclude Include="..\include\sharememory.h" />
+    <ClInclude Include="..\include\SocketComm.h" />
+    <ClInclude Include="..\include\sqlite3.h" />
+    <ClInclude Include="..\include\sqlite3ext.h" />
+    <ClInclude Include="..\include\SqliteFun.h" />
+    <ClInclude Include="..\include\TCPClient.h" />
+    <ClInclude Include="..\include\TCPServer.h" />
+    <ClInclude Include="..\include\TCPSocketClient.h" />
+    <ClInclude Include="..\include\tinystr.h" />
+    <ClInclude Include="..\include\tinyxml.h" />
+    <ClInclude Include="..\include\UDPSocketClient.h" />
+    <ClInclude Include="Admins.h" />
+    <ClInclude Include="Base64.h" />
+    <ClInclude Include="CommunicateInterface.h" />
+    <ClInclude Include="CWebBrowser2.h" />
+    <ClInclude Include="json.hpp" />
+    <ClInclude Include="MakePNG.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="Shell.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="tinyzipinterface.h" />
+    <ClInclude Include="ToolsFunction.h" />
+    <ClInclude Include="Trade.h" />
+    <ClInclude Include="WeChatPrinter.h" />
+    <ClInclude Include="WeChatPrinterDlg.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\comm\COMMFCN.cpp" />
+    <ClCompile Include="..\comm\commfun.cpp" />
+    <ClCompile Include="..\Config\Config.cpp" />
+    <ClCompile Include="..\http\HttpClient.cpp" />
+    <ClCompile Include="Admins.cpp" />
+    <ClCompile Include="Base64.cpp" />
+    <ClCompile Include="CWebBrowser2.cpp" />
+    <ClCompile Include="MakePNG.cpp" />
+    <ClCompile Include="Shell.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="ToolsFunction.cpp" />
+    <ClCompile Include="Trade.cpp" />
+    <ClCompile Include="WeChatPrinter.cpp" />
+    <ClCompile Include="WeChatPrinterDlg.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="WeChatPrinter.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\WeChatPrinter.rc2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\WeChatPrinter.ico" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties RESOURCE_FILE="WeChatPrinter.rc" _x007B_8856F961-340A-11D0-A96B-00C04FD705A2_x007D_="CExplorer1" />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>
