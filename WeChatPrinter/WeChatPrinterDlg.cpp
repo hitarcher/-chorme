@@ -139,7 +139,7 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	}
 #endif
 
-	// 窗口名称 设置窗口名，先去查找，再设置名称。二次启动去查找，找到了就提示，这样可以使程序避免重复运行
+	// 窗口名称 设置窗口名，先去查找，再设置名称。二次启动去查找，找到了就提示，这样可以使程序避免重复运行 
 	SetWindowText(INFO_PUBLISH_SCREEN_NAME);
 	//加载基本配置
 	if (FALSE == g_Config.LoadBaseCfg())
