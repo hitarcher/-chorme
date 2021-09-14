@@ -98,7 +98,7 @@ CWeChatPrinterDlg::CWeChatPrinterDlg(CWnd* pParent /*=NULL*/)
 void CWeChatPrinterDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CImageDlg::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_EXPLORER_MAIN, m_netBrower);
+//	DDX_Control(pDX, IDC_EXPLORER_MAIN, m_netBrower);
 }
 
 BEGIN_MESSAGE_MAP(CWeChatPrinterDlg, CImageDlg)
@@ -163,8 +163,12 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	m_hChooseProgram = CreateThread(NULL, 0, ChooseProgramThreadProc, this, 0, &dwThreadId);
 	m_hHeartBeat = CreateThread(NULL, 0, HeartBeatThreadProc, this, 0, &dwThreadId);
 
+	strHtmlPath = "file:///" + GetFullPath(g_Config.m_strRelatePath + "index.html");
+	strHtmlPath.Replace("\\", "/");
+	ConvertGBKToUtf8(strHtmlPath);
 	cef_init();
-
+	SetTimer(TIMER_LOADPAGE, 2000, NULL);
+	
 	//先加载一次，避免会出现异常的黑色区域
 	//LoadMainFrame();
 	//选择加载的节目json，包含离线压缩包解压，选择紧急插播节目或者是普通节目
@@ -292,16 +296,12 @@ BOOL CWeChatPrinterDlg::LoadMainFrame()
 
 void CWeChatPrinterDlg::LoadTemplate()
 {
-	CComQIPtr<IHTMLDocument2> spDoc = m_netBrower.get_Document();
-	CComDispatchDriver spScript;
-	spDoc->get_Script(&spScript);
-
-	std::string strTemp = jForIE.dump(4);
+	std::string strTemp = jForIE.dump();
 	CString strContent = strTemp.c_str();
-	//ConvertUtf8ToGBK(strContent);//中文再转gbk会变成问号
-	CComVariant var2 = strContent.GetBuffer(0), varRet;
-	strContent.ReleaseBuffer();
-	spScript.Invoke1(L"loadPage", &var2, &varRet);
+	ConvertGBKToUtf8(strContent);
+	CString strInitInterface;
+	strInitInterface.Format(_T("loadPage('%s');"), strContent);
+	cef_exec_js(strInitInterface.GetBuffer(0));
 
 #ifdef DETAIlEDLOG
 	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "LoadTemplate", "加载模板成功,加载模板为\r\n%s\r\n", strContent);
@@ -310,24 +310,6 @@ void CWeChatPrinterDlg::LoadTemplate()
 #endif
 
 }
-
-HRESULT CWeChatPrinterDlg::CallBackFcnFromH5(CString strFcnName, CString strID, CString strFile)
-{
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "CallBackFcnFromH5", "[%s][in]", strFcnName);
-	CComQIPtr<IHTMLDocument2> spDoc = m_netBrower.get_Document();
-	CComDispatchDriver spScript;
-	spDoc->get_Script(&spScript);
-	CComVariant var1 = strID.GetBuffer(0);
-	strID.ReleaseBuffer();
-	CComVariant var2 = strFile.GetBuffer(0);
-	strFile.ReleaseBuffer();
-
-	CComVariant varRet;
-	HRESULT hRet = spScript.Invoke2(strFcnName.AllocSysString(), &var1, &var2, &varRet);
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "CallBackFcnFromH5", "[%s][HRESULT = %d][out]", strFcnName, hRet);
-	return hRet;
-}
-
 
 void CWeChatPrinterDlg::cef_init()
 {
@@ -342,7 +324,6 @@ void CWeChatPrinterDlg::cef_init()
 #endif
 
 	CefMainArgs main_args(theApp.m_hInstance);
-
 	int exit_code = CefExecuteProcess(main_args, nullptr, sandbox_info);
 	if (exit_code >= 0) {
 		return;
@@ -367,15 +348,22 @@ void CWeChatPrinterDlg::cef_init()
 #if !defined(CEF_USE_SANDBOX)
 	settings.no_sandbox = true;
 #endif
+	//********************************************************************************
+	//实在想不起来，自适应会有什么问题，不过大部分都按照配的分辨率来的话，这个先不放开了。
+	SetWindowPos(NULL, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), SWP_DRAWFRAME);
+
+	//********************************************************************************
 
 	CRect rect; GetWindowRect(&rect);
 	m_cef_app =
 		new SimpleApp(
-			"www.baidu.com"
+			strHtmlPath.GetBuffer(0)
+			/*"www.baidu.com"*/
 			, m_hWnd
 			, rect
 		);
 	CefInitialize(main_args, settings, m_cef_app.get(), sandbox_info);
+
 }
 
 
@@ -2086,7 +2074,8 @@ void CWeChatPrinterDlg::OnTimer(UINT_PTR nIDEvent)
 		SetEvent(m_hRMQEvent);
 		break;
 	case TIMER_LOADMAINFRAME:
-		LoadMainFrame();
+		//LoadMainFrame();
+		LoadTemplate();
 		break;
 	case TIMER_LOADTEMPORARY:			//加载紧急插播的节目
 		ChangeCurrentJson(jTemproary);
@@ -2215,23 +2204,23 @@ void CWeChatPrinterDlg::SetProperty(CString strID, CString strName, CComVariant 
 }
 
 BEGIN_EVENTSINK_MAP(CWeChatPrinterDlg, CImageDlg)
-	ON_EVENT(CWeChatPrinterDlg, IDC_EXPLORER_MAIN, 102, CWeChatPrinterDlg::OnStatustextchangeExplorerMain, VTS_BSTR)
+//	ON_EVENT(CWeChatPrinterDlg, IDC_EXPLORER_MAIN, 102, CWeChatPrinterDlg::OnStatustextchangeExplorerMain, VTS_BSTR)
 END_EVENTSINK_MAP()
-
-void CWeChatPrinterDlg::OnStatustextchangeExplorerMain(LPCTSTR Text)
-{
-	// TODO: 在此处添加消息处理程序代码
-	if (
-		(m_netBrower.get_ReadyState() == READYSTATE_COMPLETE
-			|| (m_netBrower.get_ReadyState() == READYSTATE_INTERACTIVE)
-			)
-		/* && strcmp(Text,"Done") == 0 */
-		&& m_bLoadComplete == FALSE)
-	{
-		m_bLoadComplete = TRUE;
-		SetTimer(TIMER_LOADPAGE, 1000, NULL);
-	}
-}
+//
+//void CWeChatPrinterDlg::OnStatustextchangeExplorerMain(LPCTSTR Text)
+//{
+//	// TODO: 在此处添加消息处理程序代码
+//	if (
+//		(m_netBrower.get_ReadyState() == READYSTATE_COMPLETE
+//			|| (m_netBrower.get_ReadyState() == READYSTATE_INTERACTIVE)
+//			)
+//		/* && strcmp(Text,"Done") == 0 */
+//		&& m_bLoadComplete == FALSE)
+//	{
+//		m_bLoadComplete = TRUE;
+//		SetTimer(TIMER_LOADPAGE, 1000, NULL);
+//	}
+//}
 
 //
 //HRESULT STDMETHODCALLTYPE CWeChatPrinterDlg::GetTypeInfoCount(UINT *pctinfo)
@@ -2373,7 +2362,7 @@ void CWeChatPrinterDlg::OnAdminEnter(CPoint point)
 #ifdef EASY_PASSWD
 	if (m_strAdminEnter.Find("1") >= 0) ::PostMessage(m_hWnd, WM_COMMAND, BTN_ADMIN_LOGOUT, NULL);
 #else
-	if (m_strAdminEnter.Find("3333") >= 0) ::PostMessage(m_hWnd, WM_COMMAND, BTN_ADMIN_LOGOUT, NULL);
+	if (m_strAdminEnter.Find("33") >= 0) ::PostMessage(m_hWnd, WM_COMMAND, BTN_ADMIN_LOGOUT, NULL);
 #endif // EASY_PASSWD
 }
 

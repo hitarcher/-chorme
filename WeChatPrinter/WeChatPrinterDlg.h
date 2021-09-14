@@ -41,6 +41,7 @@ using json = nlohmann::json;
 //CEF3
 #include "mycef.h"
 #include "simple_app.h"
+#include "simple_handler.h"
 /************************************************************************/
 /*                              常    量                                */
 /************************************************************************/
@@ -100,6 +101,7 @@ private:
 	BOOL m_bExit;
 	BOOL m_bLoadComplete;
 	CTrade g_toolTrade;
+	CString strHtmlPath;
 	//数据库类
 	CString m_DatabaseName;//表的名字
 	//签到线程
@@ -146,6 +148,9 @@ private:
 	void cef_load_url(std::string url);
 	void cef_exec_js(std::string js);
 
+	CefRefPtr<SimpleHandler> m_handler;								// CEF3界面句柄
+	CefRefPtr<SimpleApp>	 m_SimpleApp;							// CEF3交易类		
+
 private:
 	// 加载主界面
 	BOOL LoadMainFrame();
@@ -155,8 +160,8 @@ private:
 	void SetProperty(CString strID, CString strName, CComVariant strText);
 	// 加载模板
 	void LoadTemplate();
-	// 回调函数-调用H5里面的函数
-	HRESULT CallBackFcnFromH5(CString strFcnName,CString strID,CString strFile);
+// 	// 回调函数-调用H5里面的函数
+// 	HRESULT CallBackFcnFromH5(CString strFcnName,CString strID,CString strFile);
 
 	//签到线程
 	static DWORD WINAPI	ReSignThreadProc(LPVOID pParam);
@@ -225,7 +230,7 @@ public:
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
 	afx_msg void OnDestroy();
 	DECLARE_EVENTSINK_MAP()
-	void OnStatustextchangeExplorerMain(LPCTSTR Text);
+	//void OnStatustextchangeExplorerMain(LPCTSTR Text);
 
 private:
 //H5调用c程序的函数
@@ -251,6 +256,7 @@ public:
 	void CWeChatPrinterDlg::OnAdminEnter(CPoint point);
 	virtual BOOL OnCommand(WPARAM wParam, LPARAM lParam);
 	void CWeChatPrinterDlg::sleepFunction1(int Time);//伪动态的sleep，用于长时间睡眠却无法主动退出的线程
+
 
 };
 /************************************************************************\
