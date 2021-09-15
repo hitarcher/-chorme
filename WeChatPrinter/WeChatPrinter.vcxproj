@@ -119,8 +119,7 @@
     <ClInclude Include="..\cef\mycef.h" />
     <ClInclude Include="..\cef\simple_app.h" />
     <ClInclude Include="..\cef\simple_handler.h" />
-    <ClInclude Include="..\comm\COMMFCN.h" />
-    <ClInclude Include="..\comm\commfun.h" />
+    <ClInclude Include="..\comm\CWebBrowser2.h" />
     <ClInclude Include="..\Config\Config.h" />
     <ClInclude Include="..\http\HttpClient.h" />
     <ClInclude Include="..\include\BasePack.h" />
@@ -157,9 +156,7 @@
     <ClInclude Include="..\include\tinyxml.h" />
     <ClInclude Include="..\include\UDPSocketClient.h" />
     <ClInclude Include="Admins.h" />
-    <ClInclude Include="Base64.h" />
     <ClInclude Include="CommunicateInterface.h" />
-    <ClInclude Include="CWebBrowser2.h" />
     <ClInclude Include="json.hpp" />
     <ClInclude Include="MakePNG.h" />
     <ClInclude Include="Resource.h" />
@@ -182,13 +179,10 @@
     <ClCompile Include="..\cef\simple_handler_win.cc">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\comm\COMMFCN.cpp" />
-    <ClCompile Include="..\comm\commfun.cpp" />
+    <ClCompile Include="..\comm\CWebBrowser2.cpp" />
     <ClCompile Include="..\Config\Config.cpp" />
     <ClCompile Include="..\http\HttpClient.cpp" />
     <ClCompile Include="Admins.cpp" />
-    <ClCompile Include="Base64.cpp" />
-    <ClCompile Include="CWebBrowser2.cpp" />
     <ClCompile Include="MakePNG.cpp" />
     <ClCompile Include="Shell.cpp" />
     <ClCompile Include="stdafx.cpp">

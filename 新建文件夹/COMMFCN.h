@@ -56,6 +56,4 @@ CString GetFileName(CString strFilePath);
 /************************************************************************/
 extern CConfig	g_Config;
 
-BOOL CheckFileExist(CString filepath);
-
 #endif // __JSRCB_DEV_DRIVE_COMM_FUNCTION_H__

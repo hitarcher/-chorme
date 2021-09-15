@@ -1,11 +1,11 @@
 #include "stdafx.h"
 #include "Trade.h"
-#include "COMMFCN.h"
 #include "HttpClient.h"
 #include <string.h>
 #include <json.hpp>
 //工具函数头文件
 #include "ToolsFunction.h"
+#include "Config.h"
 
 bool IsJsonData(std::string strData);//判断是否是json文件，是否符合规范
 using namespace std;

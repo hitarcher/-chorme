@@ -163,7 +163,7 @@ CString GetBase64Pic(CString strPath)
 		CloseHandle(hFile);
 		return false;
 	}
-	string strData = _base64_encode((const unsigned char*)pBuffer, dReadSize);
+	string strData = base64_encode((const unsigned char*)pBuffer, dReadSize);
 	CString strReturn = strData.c_str();
 	delete[]pBuffer;
 	CloseHandle(hFile);
@@ -254,10 +254,24 @@ CString Base64EncodePic(CString strPicPath)
 		return false;
 	}
 	std::string strData = "";
-	strData = _base64_encode((unsigned const char*)pBuffer, dReadSize);
+	strData = base64_encode((unsigned const char*)pBuffer, dReadSize);
 
 
 	delete[]pBuffer;
 	CloseHandle(hFile);
 	return strData.c_str();
 }
+
+BOOL CheckFileExist(CString filepath)
+{
+	return exist(filepath.GetBuffer(0)) ? TRUE : FALSE;
+}
+
+
+CString GetFileName(CString strFilePath)
+{
+	CString str = strFilePath;
+	str.Replace("\\", "/");
+	return str.Mid(str.ReverseFind('/') + 1, str.GetLength());
+}
+

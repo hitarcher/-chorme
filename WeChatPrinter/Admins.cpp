@@ -5,7 +5,7 @@
 #include "WeChatPrinter.h"
 #include "Admins.h"
 #include "afxdialogex.h"
-#include "commfun.h"
+#include "ToolsFunction.h"
 
 
 #define COMMAND_ADMIN_CLOSE 1000

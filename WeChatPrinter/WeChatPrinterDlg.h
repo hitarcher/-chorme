@@ -3,7 +3,7 @@
 #pragma once
 #include <mshtml.h>
 #include <shellapi.h>
-#include "COMMFCN.h"
+
 #include "CWebBrowser2.h"
 #include "SysPrintDriver.h"
 #include "Trade.h"
@@ -18,7 +18,7 @@
 #include "json.hpp"
 using json = nlohmann::json;
 #include "Admins.h"
-
+#include "Config.h"
 #ifdef DEBUG                            
 #pragma comment(lib, "CommUtilsd.lib")  
 #else                                   
@@ -154,10 +154,7 @@ private:
 private:
 	// 加载主界面
 	BOOL LoadMainFrame();
-	// 界面文字切换
-	void InputText(CString strID, CComVariant strText);
-	// 设置属性
-	void SetProperty(CString strID, CString strName, CComVariant strText);
+
 	// 加载模板
 	void LoadTemplate();
 // 	// 回调函数-调用H5里面的函数
@@ -320,3 +317,8 @@ BOOL HTTP_Download2(CString strURL, CString strFilePath, CString strUsername, CS
 
 void GetSystemMemoryInfo();
 void RobotProgamme();
+
+/************************************************************************/
+/*                            全局变量申明                              */
+/************************************************************************/
+extern CConfig	g_Config;

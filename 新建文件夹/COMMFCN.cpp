@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "COMMFCN.h"
 
-
 CConfig	g_Config;
 
 UINT g_bLogType = LOGTYPE_DEBUG;
@@ -225,16 +224,4 @@ CString GetFileName(CString strFilePath)
 	return str.Mid(str.ReverseFind('/')+1, str.GetLength());
 }
 
-#include <iostream>
-#include <Windows.h>
-using namespace std;
-#include <tchar.h>
-#include <fstream>
-#include <sstream>
-#include "myos.h"
-#include <io.h>
 
-BOOL CheckFileExist(CString filepath)
-{
-	return exist(filepath.GetBuffer(0)) ? TRUE : FALSE;
-}

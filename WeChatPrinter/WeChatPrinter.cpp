@@ -5,7 +5,6 @@
 #include "stdafx.h"
 #include "WeChatPrinter.h"
 #include "WeChatPrinterDlg.h"
-#include "CWebBrowser2.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

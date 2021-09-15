@@ -6,7 +6,6 @@ using namespace std;
 #include <vector>
 #include "LOG2.H"
 #include "json.hpp"
-#include "Base64.h"
 using json = nlohmann::json;
 
 //音量头文件
@@ -15,6 +14,15 @@ using json = nlohmann::json;
 #include <endpointvolume.h>
 #include <audioclient.h>
 
+#include <Windows.h>
+#include <tchar.h>
+#include <fstream>
+#include <sstream>
+#include "myos.h"
+#include <io.h>
+
+#include "CommonFun.h"
+#include "mystring.h"
 int cmpfunc(const void * a, const void * b);
 
 //获得程序的当前路径
@@ -37,7 +45,6 @@ void RemoveFileToOtherPath(const char* pathOld, const char* pathNew, const char 
 //获得星期几
 int GetWeekDay();
 
-
 //修改音量，输入音量的值
 //    -2 恢复静音
 //    -1 静音
@@ -50,6 +57,17 @@ CString Base64EncodePic(CString strPicPath);
 //判断是否是json文件，是否符合规范
 bool IsJsonData(std::string strData);
 
+//使用私钥，进行3DES加密
 CString Encode_3Des(CString strPrivatekey, CString strin);
 
+//使用私钥，进行3DES解密
 CString Decode_3Des(CString strPrivatekey, CString strin);
+
+//检测文件是否存在
+BOOL CheckFileExist(CString filepath);
+
+
+CString GetFileName(CString strFilePath);
+
+//删除指定天数的日志
+

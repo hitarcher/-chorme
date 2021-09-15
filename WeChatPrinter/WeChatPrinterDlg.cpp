@@ -13,7 +13,6 @@
 
 #define TIMER_RESIGN		1001
 #define TIMER_LOADPAGE		1003
-#define TIMER_TIPS_TEXT		1004
 #define TIMER_RECV_MSG		1005
 #define TIMER_LOADMAINFRAME 1006
 #define TIMER_LOADTEMPORARY 1007
@@ -22,7 +21,6 @@
 #define TIMER_CHECKMEMORY	1010
 #define BTN_ADMIN_LOGOUT	2000
 
-#define SHOW_TIPS(t) {m_strTips = t;SetTimer(TIMER_TIPS_TEXT,10,NULL);}
 #define TIPS_TEXT	"text6"	// 文字展示区域
 #define templatezip "template.json"
 #define defaultJson "template/default.json"
@@ -44,6 +42,7 @@ typedef int(_stdcall *lpRMQ_SUB)(const char *, int, const char *, const char *, 
 lpRMQ_SUB _RMQ_SUB;
 lpRMQ_CALLBACK _RMQ_CALLBACK;
 
+CConfig	g_Config;
 
 static void CALLBACK _Recv(char* bMsg)
 {
@@ -2066,10 +2065,6 @@ void CWeChatPrinterDlg::OnTimer(UINT_PTR nIDEvent)
 	case TIMER_LOADPAGE:
 		LoadTemplate();
 		break;
-	case TIMER_TIPS_TEXT:
-		InputText(TIPS_TEXT, m_strTips.GetBuffer(0));
-		m_strTips.ReleaseBuffer();
-		break;
 	case TIMER_RECV_MSG:				//获取数据
 		SetEvent(m_hRMQEvent);
 		break;
@@ -2103,105 +2098,6 @@ void CWeChatPrinterDlg::OnTimer(UINT_PTR nIDEvent)
 	CImageDlg::OnTimer(nIDEvent);
 }
 
-VARIANT StringToVariant(CString str)
-{
-	VARIANT variant;
-	VariantInit(&variant);
-	variant.vt = VT_BSTR;
-	variant.bstrVal = str.AllocSysString();
-	return variant;
-}
-
-//*************************************************************
-// Method:    InputText
-// Access:    PRIVATE
-// Returns:   NULL
-// Parameter: strID:表示元素ID
-//			  strText:元素对应值
-// Detail:    例如：<h1 id="ver-code">0000</h1>
-//			  strID->ver-code、strText->0000
-//*************************************************************
-void CWeChatPrinterDlg::InputText(CString strID, CComVariant strText)
-{
-	HRESULT hr;
-	CComQIPtr<IHTMLDocument2> spDoc = m_netBrower.get_Document();
-	IHTMLDocument2* pDoc = NULL;
-
-	pDoc = spDoc;
-
-	IHTMLElementCollection* pColl = NULL;
-	hr = pDoc->get_all(&pColl);//得到所有网页元素记录集合  
-
-	IDispatch *pDisp2;
-	VARIANT index;
-	index.vt = VT_I4;
-	index.lVal = 0;
-
-	VARIANT varID;//要查找的HTML标记ID  
-	varID = StringToVariant(strID);
-
-	hr = pColl->item(varID, index, &pDisp2); //找到元素的位置  
-	if (S_OK == hr && NULL != pDisp2)
-	{
-		IHTMLElement* pElem = NULL;
-		hr = pDisp2->QueryInterface(IID_IHTMLElement, (void**)&pElem);
-
-		if (S_OK == hr&&NULL != pElem)
-		{
-			hr = pElem->put_innerText(strText.bstrVal);
-			if (hr != S_OK) return;
-			pElem->Release();
-		}
-		pDisp2->Release();
-	}
-
-}
-
-//*************************************************************
-// Method:    SetProperty
-// Access:    PRIVATE
-// Returns:   NULL
-// Parameter: strID:表示元素ID
-//			  strName:表示元素名
-//			  strText:表示元素对应值
-// Detail:    设置属性值：<img id="preview-image" src="images/about.png" border="0" />
-//			  strID->preview-image、strName->src、strText->images/about.png
-//*************************************************************
-void CWeChatPrinterDlg::SetProperty(CString strID, CString strName, CComVariant strText)
-{
-	HRESULT hr;
-	CComQIPtr<IHTMLDocument2> spDoc = m_netBrower.get_Document();
-	IHTMLDocument2* pDoc = NULL;
-	pDoc = spDoc;
-	IHTMLElementCollection* pColl = NULL;
-	hr = pDoc->get_all(&pColl);//得到所有网页元素记录集合  
-
-	IDispatch *pDisp2;
-	VARIANT index;
-	index.vt = VT_I4;
-	index.lVal = 0;
-
-	VARIANT varID;//要查找的HTML标记ID  
-	varID = StringToVariant(strID);
-	hr = pColl->item(varID, index, &pDisp2); //找到元素的位置  
-	if (S_OK == hr && NULL != pDisp2)
-	{
-		IHTMLElement* pElem = NULL;
-		hr = pDisp2->QueryInterface(IID_IHTMLElement, (void**)&pElem);
-		if (S_OK == hr&&NULL != pElem)
-		{
-			hr = pElem->setAttribute(CComBSTR(strName.GetBuffer(0)), strText);
-			strName.ReleaseBuffer();
-			if (hr != S_OK)
-			{
-				return;
-			}
-			pElem->Release();
-		}
-		pDisp2->Release();
-	}
-
-}
 
 BEGIN_EVENTSINK_MAP(CWeChatPrinterDlg, CImageDlg)
 //	ON_EVENT(CWeChatPrinterDlg, IDC_EXPLORER_MAIN, 102, CWeChatPrinterDlg::OnStatustextchangeExplorerMain, VTS_BSTR)

@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="IE浏览器">
-      <UniqueIdentifier>{9c1ea28a-9db3-4c02-9f68-4134d7b2a095}</UniqueIdentifier>
-    </Filter>
     <Filter Include="主界面">
       <UniqueIdentifier>{c8d86c6a-85b0-462f-ab41-3584849e8f3f}</UniqueIdentifier>
     </Filter>
@@ -50,9 +47,6 @@
     </ClInclude>
     <ClInclude Include="Resource.h">
       <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="CWebBrowser2.h">
-      <Filter>IE浏览器</Filter>
     </ClInclude>
     <ClInclude Include="WeChatPrinterDlg.h">
       <Filter>主界面</Filter>
@@ -165,12 +159,6 @@
     <ClInclude Include="json.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\comm\commfun.h">
-      <Filter>comm</Filter>
-    </ClInclude>
-    <ClInclude Include="..\comm\COMMFCN.h">
-      <Filter>comm</Filter>
-    </ClInclude>
     <ClInclude Include="Shell.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -179,9 +167,6 @@
     </ClInclude>
     <ClInclude Include="MakePNG.h">
       <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Base64.h">
-      <Filter>comm</Filter>
     </ClInclude>
     <ClInclude Include="ToolsFunction.h">
       <Filter>comm</Filter>
@@ -207,13 +192,13 @@
     <ClInclude Include="..\include\mystring.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\comm\CWebBrowser2.h">
+      <Filter>comm</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="CWebBrowser2.cpp">
-      <Filter>IE浏览器</Filter>
     </ClCompile>
     <ClCompile Include="WeChatPrinterDlg.cpp">
       <Filter>主界面</Filter>
@@ -230,20 +215,11 @@
     <ClCompile Include="..\http\HttpClient.cpp">
       <Filter>HTTP请求类</Filter>
     </ClCompile>
-    <ClCompile Include="..\comm\commfun.cpp">
-      <Filter>comm</Filter>
-    </ClCompile>
-    <ClCompile Include="..\comm\COMMFCN.cpp">
-      <Filter>comm</Filter>
-    </ClCompile>
     <ClCompile Include="Shell.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="MakePNG.cpp">
       <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Base64.cpp">
-      <Filter>comm</Filter>
     </ClCompile>
     <ClCompile Include="ToolsFunction.cpp">
       <Filter>comm</Filter>
@@ -259,6 +235,9 @@
     </ClCompile>
     <ClCompile Include="..\cef\simple_handler_win.cc">
       <Filter>cef</Filter>
+    </ClCompile>
+    <ClCompile Include="..\comm\CWebBrowser2.cpp">
+      <Filter>comm</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
