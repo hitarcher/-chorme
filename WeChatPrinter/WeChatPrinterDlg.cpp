@@ -5,23 +5,21 @@
 
 #include "mystring.h"
 #include "myos.h"
-
+#include "mylog.h"
 #include "simple_handler.h"
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif            
 
-#define TIMER_RESIGN		1001
-#define TIMER_LOADPAGE		1003
-#define TIMER_RECV_MSG		1005
-#define TIMER_LOADMAINFRAME 1006
-#define TIMER_LOADTEMPORARY 1007
-#define TIMER_CHOOSEPROGAME 1008
-#define TIMER_CHECKINCOMPELEDFILE 1009
-#define TIMER_CHECKMEMORY	1010
-#define BTN_ADMIN_LOGOUT	2000
+#define TIMER_RESIGN		1001									//签到
+#define TIMER_LOADPAGE		1002									//加载H5方法
+#define TIMER_RECV_MSG		1003									//接收RMQ消息
+#define TIMER_LOADTEMPORARY 1004									//加载紧急插播函数
+#define TIMER_CHOOSEPROGAME 1005									//选择节目
+#define TIMER_CHECKINCOMPELEDFILE 1006								//检测未完成的素材
+#define TIMER_CHECKMEMORY	1007									//检测内存
+#define BTN_ADMIN_LOGOUT	2000									
 
-#define TIPS_TEXT	"text6"	// 文字展示区域
 #define templatezip "template.json"
 #define defaultJson "template/default.json"
 #define AutoUpdateMsg "自动更新\\Msg.ini"
@@ -121,6 +119,7 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	SET_LOGTYPE((LOG_TYPE)(LOGTYPE_DEBUG | LOGTYPE_ERROR | LOGTYPE_SPECIAL));
 	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "==============START==============", "");
 	//DeleteLog(GetFullPath("LOG").GetBuffer(0), 30);
+	LOG_CLEAR(30);
 #ifdef DEBUG
 	ShowCursor(TRUE);
 #else
@@ -167,8 +166,6 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	ConvertGBKToUtf8(strHtmlPath);
 	cef_init();
 	
-	//先加载一次，避免会出现异常的黑色区域
-	//LoadMainFrame();
 	//选择加载的节目json，包含离线压缩包解压，选择紧急插播节目或者是普通节目
 	if (FALSE == ChooseJson())
 	{
@@ -177,7 +174,7 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	//选择节目并加载
 	SetTimer(TIMER_CHOOSEPROGAME, 10, NULL);
 	//隔30天删除一次没有归属的素材
-	//DelateResource();
+	DelateResource();
 
 	SetTimer(TIMER_RESIGN, 10, NULL);
 	// 设置当前页面始终显示在最前端
@@ -187,8 +184,6 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	}
 	SetTimer(TIMER_CHECKINCOMPELEDFILE, 3000, NULL);
 	SetTimer(TIMER_CHECKMEMORY, 5000, NULL);
-	SetTimer(TIMER_LOADPAGE, 2000, NULL);
-
 
 	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "界面初始化成功");
 	return TRUE;
@@ -1774,7 +1769,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 					if (PLAY_ALLDAY == iPlayMode)
 					{
 						jForIE = jData["itemtemplatejson"];
-						SetTimer(TIMER_LOADMAINFRAME, 10, NULL);
+						SetTimer(TIMER_LOADPAGE, 500, NULL);
 						LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放当前节目，单节目，全天");
 					}
 					//2 分时段播放模式
@@ -1789,7 +1784,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 							if (iCurTime >= vecHM[i] && iCurTime <= vecHM[i + 1])
 							{
 								bInTimeArea = TRUE;
-								SetTimer(TIMER_LOADMAINFRAME, 10, NULL);
+								SetTimer(TIMER_LOADPAGE, 500, NULL);
 								iCloseRemainingTime = GetCloseTime(vecHM, iCurTime);
 								SetTimer(TIMER_CHOOSEPROGAME, iCloseRemainingTime * 1000, NULL);
 								LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放当前节目，单节目，将于%d分钟后切换到其他节目", (int)(iCloseRemainingTime/60));
@@ -1800,7 +1795,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 						if (FALSE == bInTimeArea)
 						{
 							jForIE = jDefault["body"]["data"]["itemtemplatejson"];//修改当前json,加载默认的
-							SetTimer(TIMER_LOADMAINFRAME, 10, NULL);
+							SetTimer(TIMER_LOADPAGE, 500, NULL);
 							iRemainingTime = GetWaitTime(vecHM, iCurTime);
 							SetTimer(TIMER_CHOOSEPROGAME, iRemainingTime * 1000, NULL);
 							LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放默认节目，单节目，将于%d分钟后切换当前节目", (int)(iRemainingTime / 60));
@@ -1819,7 +1814,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 					{
 						g_bIsTemproaryOn = TRUE;
 						jForIE = jData["itemtemplatejson"];
-						SetTimer(TIMER_LOADMAINFRAME, 10, NULL);
+						SetTimer(TIMER_LOADPAGE, 500, NULL);
 						LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放紧急插播节目，全天");
 					}
 					//2 分时段播放模式
@@ -1835,7 +1830,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 							{
 								g_bIsTemproaryOn = TRUE;
 								bInTimeArea = TRUE;
-								SetTimer(TIMER_LOADMAINFRAME, 10, NULL);
+								SetTimer(TIMER_LOADPAGE, 500, NULL);
 								iCloseRemainingTime = GetCloseTime(vecHM, iCurTime);
 								SetTimer(TIMER_CHOOSEPROGAME, iCloseRemainingTime * 1000, NULL);
 								LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放紧急插播节目，将于%d分钟后切换到其他节目", (int)(iCloseRemainingTime / 60));
@@ -1881,7 +1876,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 					{
 						if (g_strItemid.CompareNoCase(strTempItemID) == 0 )
 						{
-							SetTimer(TIMER_LOADMAINFRAME, 10, NULL);
+							SetTimer(TIMER_LOADPAGE, 500, NULL);
 							g_strItemid = strTempItemID;
 							bUnderSwitchMode = FALSE;
 							break;
@@ -1949,7 +1944,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 					//有符合时间的就退出循环
 					if (bInTimeArea)
 					{
-						SetTimer(TIMER_LOADMAINFRAME, 10, NULL);
+						SetTimer(TIMER_LOADPAGE, 500, NULL);
 						iCloseRemainingTime = GetCloseTime(vecHM, iCurTime);
 						SetTimer(TIMER_CHOOSEPROGAME, iCloseRemainingTime * 1000, NULL);
 						LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放多节目，将于%d分钟后切换到其他节目", (int)(iCloseRemainingTime / 60));
@@ -1959,7 +1954,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 					else
 					{
 						jForIE = jDefault["body"]["data"]["itemtemplatejson"];//修改当前json,加载默认的
-						SetTimer(TIMER_LOADMAINFRAME, 10, NULL);
+						SetTimer(TIMER_LOADPAGE, 500, NULL);
 						//当传入的为周重复和自定义模式，在函数中判断为末尾需要转一天的情况，就不执行倒计时
 						iRemainingTime = GetWaitTime(vecALLHM, iCurTime, iPlayMode);
 						if (iRemainingTime >= 0)
@@ -2029,10 +2024,6 @@ void CWeChatPrinterDlg::OnTimer(UINT_PTR nIDEvent)
 	case TIMER_RECV_MSG:				//获取数据
 		SetEvent(m_hRMQEvent);
 		break;
-	case TIMER_LOADMAINFRAME:
-		//LoadMainFrame();
-		LoadTemplate();
-		break;
 	case TIMER_LOADTEMPORARY:			//加载紧急插播的节目
 		ChangeCurrentJson(jTemproary);
 		g_bIsTemproaryOn = TRUE;
@@ -2042,7 +2033,7 @@ void CWeChatPrinterDlg::OnTimer(UINT_PTR nIDEvent)
 		SetEvent(m_hChooseProgramEvent);
 		break;
 	case TIMER_CHECKINCOMPELEDFILE:		//检查文件是否完整
-		if (nCheckTimes++ <3)
+		if (nCheckTimes++ < 3)
 		{
 			CheckIncompleted();
 		}
@@ -2050,9 +2041,9 @@ void CWeChatPrinterDlg::OnTimer(UINT_PTR nIDEvent)
 			nCheckTimes = 0;
 		break;
 	case TIMER_CHECKMEMORY:
-			GetSystemMemoryInfo();
-			SetTimer(TIMER_CHECKMEMORY, 1000*120, NULL);
-			break;
+		GetSystemMemoryInfo();
+		SetTimer(TIMER_CHECKMEMORY, 1000 * 120, NULL);
+		break;
 	default:
 		break;
 	}
@@ -2427,9 +2418,9 @@ void GetSystemMemoryInfo()
 	float percent_memory = ((float)usePhys / (float)physical_memory) * 100;
 	float percent_memory_virtual = ((float)useVirtual / (float)virtual_totalmemory) * 100;
 	strInfo.Format("物理内存使用率:%.2f%% 物理内存:%lld MB 可用物理内存：%lld MB\n", percent_memory, physical_memory, avalid_memory);
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "GetSystemMemoryInfo", "%s", strInfo);
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_MEMORY, "GetSystemMemoryInfo", "%s", strInfo);
 	strInfo.Format("虚拟内存使用率:%.2f%% 虚拟内存:%lld MB 可用虚拟内存：%lld MB \n", percent_memory_virtual, virtual_totalmemory, virtual_memory);
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "GetSystemMemoryInfo", "%s", strInfo);
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_MEMORY, "GetSystemMemoryInfo", "%s", strInfo);
 
 	SYSTEM_INFO si;
 	GetSystemInfo(&si);
@@ -2470,14 +2461,14 @@ void GetSystemMemoryInfo()
 		}
 	}
 	strInfo.Format("进程id:%d 已使用内存 %d MB\n", pid, usedMemory);
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "GetSystemMemoryInfo", "%s", strInfo);
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_MEMORY, "GetSystemMemoryInfo", "%s", strInfo);
 	CloseHandle(handle);
 
 	//虚拟内存使用率 >85 或者  已使用内存 大雨1100 MB 就重启程序
-	if (percent_memory_virtual >85 || usedMemory >1100)
+	if (/*percent_memory_virtual >85 ||*/ usedMemory >1100)
 	{
-		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "GetSystemMemoryInfo", "程序即将重启");
-		RobotProgamme();
+		LOG2(LOGTYPE_DEBUG, LOG_NAME_MEMORY, "GetSystemMemoryInfo", "\n程序即将重启\n");
+		//RobotProgamme();
 	}
 }
 

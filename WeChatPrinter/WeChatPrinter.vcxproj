@@ -138,6 +138,7 @@
     <ClInclude Include="..\include\LOG.H" />
     <ClInclude Include="..\include\LOG2.H" />
     <ClInclude Include="..\include\MD5.H" />
+    <ClInclude Include="..\include\mylog.h" />
     <ClInclude Include="..\include\myos.h" />
     <ClInclude Include="..\include\mystring.h" />
     <ClInclude Include="..\include\Ping.h" />

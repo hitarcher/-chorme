@@ -192,6 +192,9 @@
     <ClInclude Include="..\include\mystring.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\mylog.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

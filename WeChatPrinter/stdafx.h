@@ -43,15 +43,16 @@
 #define LOG_NAME_DEBUG "DEBUG.LOG"
 #define LOG_NAME_RMQ "RMQ.LOG"
 #define LOG_NAME_OFFLINE "OFFLINE.LOG"
+#define LOG_NAME_MEMORY "MEMORY.LOG"
 
 #define INFO_PUBLISH_SCREEN_NAME "INFO_PUBLISH_SCREEN_NAME"
 
 //Release用
-//#define  CHECKUPDATE		//启动自动更新
-//#define  AVOIDREPEATRUN		//避免重复运行
+#define  CHECKUPDATE		//启动自动更新
+#define  AVOIDREPEATRUN		//避免重复运行
 
 //DEBUG用 
-#define  DETAIlEDLOG			//启用详细日志  
+//#define  DETAIlEDLOG			//启用详细日志  
 //#define  CLOSESCRECT			//关闭加密
 //#define  DOWNLOAD_NO			//关闭下载
 
