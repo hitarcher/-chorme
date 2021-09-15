@@ -3,9 +3,6 @@
 #pragma once
 #include <mshtml.h>
 #include <shellapi.h>
-
-#include "CWebBrowser2.h"
-#include "SysPrintDriver.h"
 #include "Trade.h"
 #include "CommTbl.h"
 #include "SqliteFun.h"
@@ -90,8 +87,6 @@ protected:
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 public:
-	
-	CWebBrowser2 m_netBrower;
 	HINSTANCE m_hInstance;
 private:
 	int m_nMode;
@@ -152,13 +147,8 @@ private:
 	CefRefPtr<SimpleApp>	 m_SimpleApp;							// CEF3交易类		
 
 private:
-	// 加载主界面
-	BOOL LoadMainFrame();
-
 	// 加载模板
 	void LoadTemplate();
-// 	// 回调函数-调用H5里面的函数
-// 	HRESULT CallBackFcnFromH5(CString strFcnName,CString strID,CString strFile);
 
 	//签到线程
 	static DWORD WINAPI	ReSignThreadProc(LPVOID pParam);
@@ -316,8 +306,9 @@ int GetCloseTime(vector<int>vecHM, int iCurrentTime);
 BOOL HTTP_Download2(CString strURL, CString strFilePath, CString strUsername, CString strPassword, CString strProxyList);
 
 void GetSystemMemoryInfo();
-void RobotProgamme();
 
+//重启程序
+void RobotProgamme();
 /************************************************************************/
 /*                            全局变量申明                              */
 /************************************************************************/

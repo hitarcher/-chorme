@@ -274,4 +274,3 @@ CString GetFileName(CString strFilePath)
 	str.Replace("\\", "/");
 	return str.Mid(str.ReverseFind('/') + 1, str.GetLength());
 }
-

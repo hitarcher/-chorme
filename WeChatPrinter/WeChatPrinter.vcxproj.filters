@@ -192,9 +192,6 @@
     <ClInclude Include="..\include\mystring.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\comm\CWebBrowser2.h">
-      <Filter>comm</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -235,9 +232,6 @@
     </ClCompile>
     <ClCompile Include="..\cef\simple_handler_win.cc">
       <Filter>cef</Filter>
-    </ClCompile>
-    <ClCompile Include="..\comm\CWebBrowser2.cpp">
-      <Filter>comm</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

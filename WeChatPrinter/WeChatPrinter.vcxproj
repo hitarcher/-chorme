@@ -119,7 +119,6 @@
     <ClInclude Include="..\cef\mycef.h" />
     <ClInclude Include="..\cef\simple_app.h" />
     <ClInclude Include="..\cef\simple_handler.h" />
-    <ClInclude Include="..\comm\CWebBrowser2.h" />
     <ClInclude Include="..\Config\Config.h" />
     <ClInclude Include="..\http\HttpClient.h" />
     <ClInclude Include="..\include\BasePack.h" />
@@ -179,7 +178,6 @@
     <ClCompile Include="..\cef\simple_handler_win.cc">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\comm\CWebBrowser2.cpp" />
     <ClCompile Include="..\Config\Config.cpp" />
     <ClCompile Include="..\http\HttpClient.cpp" />
     <ClCompile Include="Admins.cpp" />

@@ -1,16 +1,10 @@
 #include "stdafx.h"
 #include "Trade.h"
 #include "HttpClient.h"
-#include <string.h>
-#include <json.hpp>
-//工具函数头文件
-#include "ToolsFunction.h"
 #include "Config.h"
+#include "ToolsFunction.h"
 
 bool IsJsonData(std::string strData);//判断是否是json文件，是否符合规范
-using namespace std;
-using json = nlohmann::json;
-
 extern CConfig g_Config;
 
 

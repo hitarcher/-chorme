@@ -66,8 +66,7 @@ CString Decode_3Des(CString strPrivatekey, CString strin);
 //检测文件是否存在
 BOOL CheckFileExist(CString filepath);
 
-
+//
 CString GetFileName(CString strFilePath);
 
 //删除指定天数的日志
-

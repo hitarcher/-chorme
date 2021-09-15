@@ -166,7 +166,6 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	strHtmlPath.Replace("\\", "/");
 	ConvertGBKToUtf8(strHtmlPath);
 	cef_init();
-	SetTimer(TIMER_LOADPAGE, 2000, NULL);
 	
 	//先加载一次，避免会出现异常的黑色区域
 	//LoadMainFrame();
@@ -187,8 +186,11 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 		::SetWindowPos(GetSafeHwnd(), HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);//最前端
 	}
 	SetTimer(TIMER_CHECKINCOMPELEDFILE, 3000, NULL);
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "界面初始化成功");
 	SetTimer(TIMER_CHECKMEMORY, 5000, NULL);
+	SetTimer(TIMER_LOADPAGE, 2000, NULL);
+
+
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "界面初始化成功");
 	return TRUE;
 EXIT:
 	EndDialog(FALSE);
@@ -251,46 +253,6 @@ void CWeChatPrinterDlg::OnDestroy()
 
 	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "==============DESTROY==============", "");
 	CImageDlg::OnDestroy();
-}
-
-BOOL CWeChatPrinterDlg::LoadMainFrame()
-{
-	m_bLoadComplete = FALSE;
-	//实在想不起来，自适应会有什么问题，不过大部分都按照配的分辨率来的话，这个先不放开了。
-	SetWindowPos(NULL, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), SWP_DRAWFRAME);
-	//SetWindowPos(NULL, g_Config.m_nPositionX, g_Config.m_nPositionY, g_Config.m_nPageWide, g_Config.m_nPageHigh, SWP_DRAWFRAME);
-	CString strTemp = GetFullPath(g_Config.m_strRelatePath + "index.html");
-	strTemp.Replace("/", "\\");
-
-	static BOOL binit = FALSE;
-	if (FALSE == binit)
-	{
-		//禁用缩放
-		DWORD dValue = 1;
-		BOOL bRet = WriteREG(HKEY_CURRENT_USER, "Software\\Microsoft\\Internet Explorer\\Zoom", "ZoomDisabled", REG_DWORD, (const BYTE*)(char*)&dValue, sizeof(dValue));
-		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "LoadMainFrame", "[WriteREG(Software\\Microsoft\\Internet Explorer\\Zoom：ZoomDisabled)][%s]",
-			bRet == TRUE ? "写注册表成功" : "写注册表失败");
-		// 兼容h5
-		dValue = 0x2710;
-		// 强制使用IE版本
-		// http://www.cnblogs.com/zhwl/p/3147832.html
-		// https://msdn.microsoft.com/zh-cn/library/ee330730(v=vs.85).aspx
-		bRet = WriteREG(HKEY_CURRENT_USER, "SOFTWARE\\Microsoft\\Internet Explorer\\Main\\FeatureControl\\FEATURE_BROWSER_EMULATION", "MobileCastScreen.exe", REG_DWORD, (const BYTE*)(char*)&dValue, sizeof(dValue));
-		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "LoadMainFrame", "[SOFTWARE\\Microsoft\\Internet Explorer\\main\\FeatureControl\\FEATURE_BROWSER_EMULATION][%s]",
-			bRet == TRUE ? "写注册表成功" : "写注册表失败");
-		binit = TRUE;
-	}
-
-	//屏蔽错误信息提示
-	m_netBrower.put_Silent(VARIANT_TRUE);
-	VARIANT vInfo;
-	vInfo.vt = VT_EMPTY;
-	//兼容HTML5需要修改注册表，否则该程序默认为IE7版本，不支持HTML5
-	//m_netBrower.Navigate(strTemp.GetBuffer(0), &vInfo, &vInfo, &vInfo, &vInfo);
-	//strTemp.ReleaseBuffer();
-	//m_netBrower.SetWindowPos(NULL, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), SWP_SHOWWINDOW);
-	//m_netBrower.ShowWindow(SW_SHOW);
-	return TRUE;
 }
 
 void CWeChatPrinterDlg::LoadTemplate()
@@ -364,7 +326,6 @@ void CWeChatPrinterDlg::cef_init()
 	CefInitialize(main_args, settings, m_cef_app.get(), sandbox_info);
 
 }
-
 
 void CWeChatPrinterDlg::cef_close()
 {
@@ -2102,112 +2063,6 @@ void CWeChatPrinterDlg::OnTimer(UINT_PTR nIDEvent)
 BEGIN_EVENTSINK_MAP(CWeChatPrinterDlg, CImageDlg)
 //	ON_EVENT(CWeChatPrinterDlg, IDC_EXPLORER_MAIN, 102, CWeChatPrinterDlg::OnStatustextchangeExplorerMain, VTS_BSTR)
 END_EVENTSINK_MAP()
-//
-//void CWeChatPrinterDlg::OnStatustextchangeExplorerMain(LPCTSTR Text)
-//{
-//	// TODO: 在此处添加消息处理程序代码
-//	if (
-//		(m_netBrower.get_ReadyState() == READYSTATE_COMPLETE
-//			|| (m_netBrower.get_ReadyState() == READYSTATE_INTERACTIVE)
-//			)
-//		/* && strcmp(Text,"Done") == 0 */
-//		&& m_bLoadComplete == FALSE)
-//	{
-//		m_bLoadComplete = TRUE;
-//		SetTimer(TIMER_LOADPAGE, 1000, NULL);
-//	}
-//}
-
-//
-//HRESULT STDMETHODCALLTYPE CWeChatPrinterDlg::GetTypeInfoCount(UINT *pctinfo)
-//{
-//	return E_NOTIMPL;
-//}
-//
-//HRESULT STDMETHODCALLTYPE CWeChatPrinterDlg::GetTypeInfo(UINT iTInfo, LCID lcid, ITypeInfo **ppTInfo)
-//{
-//	return E_NOTIMPL;
-//}
-//
-//HRESULT STDMETHODCALLTYPE CWeChatPrinterDlg::GetIDsOfNames(REFIID riid, LPOLESTR *rgszNames, UINT cNames, LCID lcid, DISPID *rgDispId)
-//{
-//	//rgszNames是个字符串数组，cNames指明这个数组中有几个字符串，如果不是1个字符串，忽略它  
-//	if (cNames != 1)
-//		return E_NOTIMPL;
-//	if (wcscmp(rgszNames[0], L"InstallSoftware") == 0)
-//	{
-//		*rgDispId = FUNCTION_InstallSoftware;
-//		return S_OK;
-//	}
-//	else if (wcscmp(rgszNames[0], L"AbortInstall") == 0)
-//	{
-//		*rgDispId = FUNCTION_AbortInstall;
-//		return S_OK;
-//	}
-//	else
-//	{
-//		return E_NOTIMPL;
-//	}
-//}
-//
-//HRESULT STDMETHODCALLTYPE CWeChatPrinterDlg::Invoke(DISPID dispIdMember, REFIID riid, LCID lcid,
-//	WORD wFlags, DISPPARAMS *pDispParams, VARIANT *pVarResult, EXCEPINFO *pExcepInfo, UINT *puArgErr)
-//{
-//	//通过ID我就知道JavaScript想调用哪个方法  
-//	if (dispIdMember == FUNCTION_InstallSoftware)
-//	{
-//		//放心调用  
-//		return S_OK;
-//	}
-//	else if (dispIdMember == FUNCTION_AbortInstall)
-//	{
-//		//放心调用  
-//		return S_OK;
-//	}
-//	else
-//	{
-//		return E_NOTIMPL;
-//	}
-//}
-//
-//HRESULT STDMETHODCALLTYPE CWeChatPrinterDlg::QueryInterface(REFIID riid, void **ppvObject)
-//{
-//	if (riid == IID_IDispatch || riid == IID_IUnknown)
-//	{
-//		*ppvObject = static_cast<IDispatch*>(this);
-//		return S_OK;
-//	}
-//	else
-//		return E_NOINTERFACE;
-//}
-//
-//ULONG STDMETHODCALLTYPE CWeChatPrinterDlg::AddRef()
-//{
-//	return 1;
-//}
-//
-//ULONG STDMETHODCALLTYPE CWeChatPrinterDlg::Release()
-//{
-//	return 1;
-//}
-//
-//void CWeChatPrinterDlg::SaveObject()
-//{
-//	CComQIPtr<IHTMLDocument2> document = m_netBrower.get_Document();
-//	CComDispatchDriver script;
-//	document->get_Script(&script);
-//	CComVariant var(static_cast<IDispatch*>(this));
-//	script.Invoke1(L"SaveCppObject", &var);
-//}
-//
-//void CWeChatPrinterDlg::ClosePromptBox()
-//{
-//	CComQIPtr<IHTMLDocument2> spDoc = m_netBrower.get_Document();
-//	CComDispatchDriver spScript;
-//	spDoc->get_Script(&spScript);
-//	CComVariant var2, varRet;
-//	spScript.Invoke1(L"hide_alert", &var2, &varRet);
-//}
 
 BOOL CWeChatPrinterDlg::PreTranslateMessage(MSG* pMsg)
 {
@@ -2625,6 +2480,7 @@ void GetSystemMemoryInfo()
 		RobotProgamme();
 	}
 }
+
 
 void RobotProgamme()
 {
