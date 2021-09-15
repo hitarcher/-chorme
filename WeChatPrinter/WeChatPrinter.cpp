@@ -73,7 +73,7 @@ BOOL CWeChatPrinterApp::InitInstance()
 	HWND hwnd = ::FindWindow(NULL, INFO_PUBLISH_SCREEN_NAME);
 	if (hwnd)
 	{
-		AfxMessageBox("程序已经运行");
+		//AfxMessageBox("程序已经运行");
 		return FALSE;
 	}
 #endif

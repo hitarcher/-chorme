@@ -4,6 +4,7 @@
 CMakePNG::CMakePNG(void)
 {
 	GdiplusStartup(&m_pGdiToken, &m_gdiplusStartupInput, NULL);
+	m_strErrorMsg = "";
 }
 
 CMakePNG::~CMakePNG(void)
@@ -17,6 +18,7 @@ CMakePNG::~CMakePNG(void)
 /***************************************************************************/
 BOOL CMakePNG::MakePNG(HDC hDC, CRect rect, CString strFilePath)
 {
+	m_strErrorMsg = "";
 	BITMAP bmp;
 	PBITMAPINFO pbmi;
 	PBITMAPINFOHEADER pbih;     // bitmap info-header 
@@ -33,7 +35,7 @@ BOOL CMakePNG::MakePNG(HDC hDC, CRect rect, CString strFilePath)
 
 	if (hbmScreen == NULL)
 	{
-		AfxMessageBox(_T("CreateCompatibleBitmap() error"));
+		m_strErrorMsg = "CreateCompatibleBitmap() error";
 		return FALSE;
 	}
 
@@ -41,7 +43,7 @@ BOOL CMakePNG::MakePNG(HDC hDC, CRect rect, CString strFilePath)
 
 	if (!SelectObject(hdcCompatible, hbmScreen))
 	{
-		AfxMessageBox(_T("Compatible Bitmap Selection error"));
+		m_strErrorMsg = "Compatible Bitmap Selection error";
 		return FALSE;
 	}
 
@@ -55,7 +57,7 @@ BOOL CMakePNG::MakePNG(HDC hDC, CRect rect, CString strFilePath)
 		rect.left, rect.top,
 		SRCCOPY))
 	{
-		AfxMessageBox(_T("Screen to Compat Blt Failed"));
+		m_strErrorMsg = "Screen to Compat Blt Failed";
 		return FALSE;
 	}
 
@@ -64,7 +66,7 @@ BOOL CMakePNG::MakePNG(HDC hDC, CRect rect, CString strFilePath)
 	// Retrieve the bitmap's color format, width, and height. 
 	if (!GetObject(hbmScreen, sizeof(BITMAP), (LPSTR)&bmp))
 	{
-		AfxMessageBox(_T("GetObject()出错！"));
+		m_strErrorMsg = "GetObject()出错！";
 		return FALSE;
 	}
 	// Convert the color format to a count of bits. 
@@ -121,7 +123,7 @@ BOOL CMakePNG::MakePNG(HDC hDC, CRect rect, CString strFilePath)
 
 	if (!lpBits)
 	{
-		AfxMessageBox(_T("内存分配错误！"));
+		m_strErrorMsg = "内存分配错误！";
 		return FALSE;
 	}
 	// Retrieve the color table (RGBQUAD array) and the bits 
@@ -129,7 +131,7 @@ BOOL CMakePNG::MakePNG(HDC hDC, CRect rect, CString strFilePath)
 	if (!GetDIBits(hDC, hbmScreen, 0, (WORD)pbih->biHeight, lpBits, pbmi,
 		DIB_RGB_COLORS))
 	{
-		AfxMessageBox(_T("GetDIBits() error"));
+		m_strErrorMsg = "GetDIBits() error！";
 		return FALSE;
 	}
 
@@ -143,7 +145,7 @@ BOOL CMakePNG::MakePNG(HDC hDC, CRect rect, CString strFilePath)
 		(HANDLE)NULL);
 	if (hfile == INVALID_HANDLE_VALUE)
 	{
-		AfxMessageBox(_T("创建文件失败"));
+		m_strErrorMsg = "创建文件失败";
 		return false;
 	}
 	hdr.bfType = 0x4d42;        // 0x42 = "B" 0x4d = "M" 
@@ -163,7 +165,7 @@ BOOL CMakePNG::MakePNG(HDC hDC, CRect rect, CString strFilePath)
 	if (!WriteFile(hfile, (LPVOID)&hdr, sizeof(BITMAPFILEHEADER),
 		(LPDWORD)&dwTmp, NULL))
 	{
-		AfxMessageBox(_T("写BMP文件头失败"));
+		m_strErrorMsg = "写BMP文件头失败";
 		return FALSE;
 	}
 
@@ -172,7 +174,7 @@ BOOL CMakePNG::MakePNG(HDC hDC, CRect rect, CString strFilePath)
 		+ pbih->biClrUsed * sizeof(RGBQUAD),
 		(LPDWORD)&dwTmp, (NULL)))
 	{
-		AfxMessageBox(_T("写BMP文件头失败"));
+		m_strErrorMsg = "写BMP文件头失败";
 		return FALSE;
 	}
 
@@ -181,14 +183,14 @@ BOOL CMakePNG::MakePNG(HDC hDC, CRect rect, CString strFilePath)
 	hp = lpBits;
 	if (!WriteFile(hfile, (LPSTR)hp, (int)cb, (LPDWORD)&dwTmp, NULL))
 	{
-		AfxMessageBox(_T("写入BMP文件失败"));
+		m_strErrorMsg = "写入BMP文件失败";
 		return FALSE;
 	}
 
 	// Close the .BMP file. 
 	if (!CloseHandle(hfile))
 	{
-		AfxMessageBox(_T("Can't close BMP file."));
+		m_strErrorMsg = "Can't close BMP file.";
 	}
 
 	// Free memory. 
@@ -200,7 +202,7 @@ BOOL CMakePNG::MakePNG(HDC hDC, CRect rect, CString strFilePath)
 	hInst = ::LoadLibrary("jpgdll.dll");
 	if (hInst == NULL)
 	{
-		AfxMessageBox("jpgdll.dll加载失败!");
+		m_strErrorMsg = "jpgdll.dll加载失败!";
 		return FALSE;
 	}
 	pFunc = (CHANGE*)::GetProcAddress(hInst, "BmpToJpg");
