@@ -128,6 +128,8 @@ void SimpleApp::OnBeforeCommandLineProcessing(
 	// eidt by mingl : 设置 在无交互模式下 开启视频自动播放
 	command_line->AppendSwitchWithValue("autoplay-policy", "no-user-gesture-required");
 	command_line->AppendSwitch("single-process");
+	//禁止cef进行dpi缩放
+	command_line->AppendSwitchWithValue("--force-device-scale-factor", "1");
 }
 
 

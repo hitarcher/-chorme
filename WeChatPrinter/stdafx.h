@@ -48,7 +48,7 @@
 #define INFO_PUBLISH_SCREEN_NAME "INFO_PUBLISH_SCREEN_NAME"
 
 //Release用
-#define  CHECKUPDATE		//启动自动更新
+//#define  CHECKUPDATE		//启动自动更新
 #define  AVOIDREPEATRUN		//避免重复运行
 
 //DEBUG用 

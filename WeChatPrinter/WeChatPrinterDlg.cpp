@@ -118,13 +118,11 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	/************************************************************************/
 	SET_LOGTYPE((LOG_TYPE)(LOGTYPE_DEBUG | LOGTYPE_ERROR | LOGTYPE_SPECIAL));
 	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "==============START==============", "");
-	//DeleteLog(GetFullPath("LOG").GetBuffer(0), 30);
-	LOG_CLEAR(30);
-#ifdef DEBUG
-	ShowCursor(TRUE);
-#else
-	ShowCursor(FALSE);
-#endif 
+// #ifdef DEBUG
+// 	ShowCursor(TRUE);
+// #else
+// 	ShowCursor(FALSE);
+// #endif 
 	//用于更新 自动更新程序
 	if (CheckFileExist("update.bat"))
 	{
@@ -132,6 +130,7 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "OnInitDialog", "执行更新程序，替换文件");
 		goto EXIT;
 	}
+	LOG_CLEAR(30);
 
 #ifdef CHECKUPDATE
 	//是否启动自动更新检测
@@ -246,6 +245,7 @@ void CWeChatPrinterDlg::OnDestroy()
 	CloseHandle(m_hChooseProgram);
 	m_hChooseProgram = NULL;
 
+	//cef_close();
 	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "==============DESTROY==============", "");
 	CImageDlg::OnDestroy();
 }
@@ -284,10 +284,8 @@ void CWeChatPrinterDlg::cef_init()
 	if (exit_code >= 0) {
 		return;
 	}
-
 	CefRefPtr<CefCommandLine> command_line = CefCommandLine::CreateCommandLine();
 	command_line->InitFromString(::GetCommandLineW());
-
 	CefSettings settings;
 	if (command_line->HasSwitch("enable-chrome-runtime")) {
 		settings.chrome_runtime = true;
@@ -1320,7 +1318,11 @@ CString CWeChatPrinterDlg::ScreenShot(void)
 	strFileName += _T(".png");
 	//保存为PNG
 	CMakePNG MakePNG;
-	MakePNG.MakePNG(pDC->m_hDC, rect, strFileName);
+	BOOL bret = MakePNG.MakePNG(pDC->m_hDC, rect, strFileName);
+	if (FALSE == bret)
+	{
+		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "ScreenShot", " \n截图失败-[%s]\n", MakePNG.getErrorMsg());
+	}
 	ReleaseDC(pDC);
 	return strFileName;
 }

@@ -69,4 +69,3 @@ BOOL CheckFileExist(CString filepath);
 //
 CString GetFileName(CString strFilePath);
 
-//删除指定天数的日志
