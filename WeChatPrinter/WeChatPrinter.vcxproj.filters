@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="主界面">
-      <UniqueIdentifier>{c8d86c6a-85b0-462f-ab41-3584849e8f3f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="trade">
       <UniqueIdentifier>{f27b9b94-4a68-49f3-88a7-8d693a8fc4f2}</UniqueIdentifier>
     </Filter>
@@ -28,11 +25,14 @@
     <Filter Include="config">
       <UniqueIdentifier>{915f379f-9f42-49a3-9d1a-e2cf48c2b4f5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="HTTP请求类">
-      <UniqueIdentifier>{8850f23d-db3f-4ddd-837e-23ab32b20bdf}</UniqueIdentifier>
-    </Filter>
     <Filter Include="cef">
       <UniqueIdentifier>{49c7b6bc-0cfa-4e31-aca1-6b445c78512b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HTTP">
+      <UniqueIdentifier>{8850f23d-db3f-4ddd-837e-23ab32b20bdf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ExitDialog">
+      <UniqueIdentifier>{b93b9247-4328-4cbd-a3b8-3ae6acd0b96a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -47,12 +47,6 @@
     </ClInclude>
     <ClInclude Include="Resource.h">
       <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="WeChatPrinterDlg.h">
-      <Filter>主界面</Filter>
-    </ClInclude>
-    <ClInclude Include="WeChatPrinter.h">
-      <Filter>主界面</Filter>
     </ClInclude>
     <ClInclude Include="Trade.h">
       <Filter>trade</Filter>
@@ -154,28 +148,13 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\http\HttpClient.h">
-      <Filter>HTTP请求类</Filter>
-    </ClInclude>
-    <ClInclude Include="json.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Shell.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="tinyzipinterface.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="MakePNG.h">
-      <Filter>头文件</Filter>
+      <Filter>HTTP</Filter>
     </ClInclude>
     <ClInclude Include="ToolsFunction.h">
       <Filter>comm</Filter>
     </ClInclude>
     <ClInclude Include="CommunicateInterface.h">
       <Filter>comm</Filter>
-    </ClInclude>
-    <ClInclude Include="Admins.h">
-      <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="..\cef\mycef.h">
       <Filter>cef</Filter>
@@ -195,16 +174,28 @@
     <ClInclude Include="..\include\mylog.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="Admins.h">
+      <Filter>ExitDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="..\comm\MakePNG.h">
+      <Filter>comm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\json.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\comm\tinyzipinterface.h">
+      <Filter>comm</Filter>
+    </ClInclude>
+    <ClInclude Include="WeChatPrinterDlg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="WeChatPrinter.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="WeChatPrinterDlg.cpp">
-      <Filter>主界面</Filter>
-    </ClCompile>
-    <ClCompile Include="WeChatPrinter.cpp">
-      <Filter>主界面</Filter>
     </ClCompile>
     <ClCompile Include="Trade.cpp">
       <Filter>trade</Filter>
@@ -213,19 +204,10 @@
       <Filter>config</Filter>
     </ClCompile>
     <ClCompile Include="..\http\HttpClient.cpp">
-      <Filter>HTTP请求类</Filter>
-    </ClCompile>
-    <ClCompile Include="Shell.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="MakePNG.cpp">
-      <Filter>源文件</Filter>
+      <Filter>HTTP</Filter>
     </ClCompile>
     <ClCompile Include="ToolsFunction.cpp">
       <Filter>comm</Filter>
-    </ClCompile>
-    <ClCompile Include="Admins.cpp">
-      <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="..\cef\simple_app.cc">
       <Filter>cef</Filter>
@@ -235,6 +217,18 @@
     </ClCompile>
     <ClCompile Include="..\cef\simple_handler_win.cc">
       <Filter>cef</Filter>
+    </ClCompile>
+    <ClCompile Include="Admins.cpp">
+      <Filter>ExitDialog</Filter>
+    </ClCompile>
+    <ClCompile Include="..\comm\MakePNG.cpp">
+      <Filter>comm</Filter>
+    </ClCompile>
+    <ClCompile Include="WeChatPrinterDlg.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="WeChatPrinter.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

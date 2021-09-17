@@ -74,31 +74,23 @@ public:
 
 // 对话框数据
 	enum { IDD = IDD_WECHATPRINTER_DIALOG };
-
-	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 支持
-// 实现
 protected:
-	HICON m_hIcon;
+	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 支持
 
+	HICON m_hIcon;
 	// 生成的消息映射函数
 	virtual BOOL OnInitDialog();
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
-public:
-	HINSTANCE m_hInstance;
 private:
-	int m_nMode;
-	CString m_strLastErr;
-	CString m_strTips;
-	CString m_strTip;
-	BOOL m_bExit;
-	BOOL m_bLoadComplete;
+	BOOL m_bExit;													
+	CString m_strLastErr;											
 	CTrade g_toolTrade;
-	CString strHtmlPath;
-	//数据库类
-	CString m_DatabaseName;//表的名字
+	int m_nMode;													//单节目还是多节目
+
+	CString m_strHtmlPath;
+
 	//签到线程
 	HANDLE m_hReSign;
 	HANDLE m_hReSignEvent;
@@ -128,25 +120,21 @@ private:
 
 	json GetCurrentJson() { return jrsp; }
 	void ChangeCurrentJson(json jTemp) { jrsp = jTemp; }
+
 	static CWeChatPrinterDlg* m_pThis;
 
-	int m_iNextBitSpace ;										//下次心跳时间
-	CString m_strLastSignTime;									//最新签到时间
-	CString m_OnlineTime;										//在线时长
-
-	CString m_strOrgCode;
-	CString m_strDeviceType;
-
-	CefRefPtr<SimpleApp> m_cef_app;
-	void cef_init();
-	void cef_close();
-	void cef_load_url(std::string url);
-	void cef_exec_js(std::string js);
-
-	CefRefPtr<SimpleHandler> m_handler;								// CEF3界面句柄
-	CefRefPtr<SimpleApp>	 m_SimpleApp;							// CEF3交易类		
-
-private:
+	int m_iNextBitSpace ;										    //下次心跳时间
+	CString m_strLastSignTime;									    //最新签到时间
+	CString m_OnlineTime;										    //在线时长
+	CString m_strOrgCode;											//签到后机构号  
+	CString m_strDeviceType;									    //签到后设备类型
+																    
+	CefRefPtr<SimpleApp> m_cef_app;								    
+	void cef_init();											    
+	void cef_close();											    
+	void cef_load_url(std::string url);							    
+	void cef_exec_js(std::string js);							    
+ 
 	// 加载模板
 	void LoadTemplate();
 
@@ -170,11 +158,14 @@ private:
 	static DWORD WINAPI HeartBeatThreadProc(LPVOID pParam);
 	DWORD WINAPI HeartBeatThreadContent(LPVOID pParam);
 
-	BOOL RMQ_DealCustomMsg(CString strMsg);								// RMQ下发操作
-	BOOL LoadRMQPubAndRMQSUBDLL();										//加载Pub和SUB两个动态库
-	BOOL RMQ_SUBConnect();												//SUB连接服务器并设置接收回调函数
+	// RMQ下发操作
+	BOOL RMQ_DealCustomMsg(CString strMsg);	
+	//加载Pub和SUB两个动态库
+	BOOL LoadRMQPubAndRMQSUBDLL();	
+	//SUB连接服务器并设置接收回调函数
+	BOOL RMQ_SUBConnect();			
 
-
+	//删除旧的素材
 	void DelateResource();
 
 	//检测json里是否有资源与旧json重复。2，3，4，5 json与1比较，1json里有的素材是2，3，4，5没有的话就删除这些素材
@@ -213,37 +204,20 @@ private:
 // 	
 // 	//启动在线节目，将当前的template 改成templaiteOffline。templateonline 改成 template
 // 	void SwitchJsonToOnline();
-public:
-	afx_msg void OnTimer(UINT_PTR nIDEvent);
-	afx_msg void OnDestroy();
-	DECLARE_EVENTSINK_MAP()
-	//void OnStatustextchangeExplorerMain(LPCTSTR Text);
+	void sleepFunction1(int Time);//伪动态的sleep，用于长时间睡眠却无法主动退出的线程
 
-private:
-//H5调用c程序的函数
-
-//	void ClosePromptBox();
-// 	void SaveObject();
-// 	virtual HRESULT STDMETHODCALLTYPE GetTypeInfoCount(UINT *pctinfo);
-// 	virtual HRESULT STDMETHODCALLTYPE GetTypeInfo(UINT iTInfo, LCID lcid, ITypeInfo **ppTInfo);
-// 	virtual HRESULT STDMETHODCALLTYPE GetIDsOfNames(REFIID riid, LPOLESTR *rgszNames, UINT cNames, LCID lcid, DISPID *rgDispId);
-// 	virtual HRESULT STDMETHODCALLTYPE Invoke(DISPID dispIdMember, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS *pDispParams, VARIANT *pVarResult, EXCEPINFO *pExcepInfo, UINT *puArgErr);
-// 	virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject);
-// 	virtual ULONG STDMETHODCALLTYPE AddRef();
-// 	virtual ULONG STDMETHODCALLTYPE Release();
 public:
 	// 窗口大小
 	CRect	m_rc;
 	//退出时的密码
-	CString m_strAdminEnter ;
-	//退出密码后的弹窗
-	//CAdmins m_admin;
+	CString m_strAdminEnter;
 
-	virtual BOOL PreTranslateMessage(MSG* pMsg);
-	void CWeChatPrinterDlg::OnAdminEnter(CPoint point);
+	void OnAdminEnter(CPoint point);
 	virtual BOOL OnCommand(WPARAM wParam, LPARAM lParam);
-	void CWeChatPrinterDlg::sleepFunction1(int Time);//伪动态的sleep，用于长时间睡眠却无法主动退出的线程
 
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
+	afx_msg void OnDestroy();
+	DECLARE_EVENTSINK_MAP()
 
 };
 /************************************************************************\

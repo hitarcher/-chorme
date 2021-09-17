@@ -6,7 +6,7 @@
 // symbol defined on the command line. this symbol should not be defined on any project
 // that uses this DLL. This way any other project whose source files include this file see 
 // IMAGEDLG_API functions as being imported from a DLL, wheras this DLL sees symbols
-// defined with this macro as being exported.
+// defined with this macro as being exported. 
 
 #include "ImageBase.h"
 #include <AFXTEMPL.H>
@@ -173,6 +173,7 @@ public:
 	
 public:
 	//添加需要显示的图片
+	BOOL    SetDrog(BOOL bDrog);
 	BOOL	AddImage(int nPosX, int nPosY, LPCTSTR lpszImageName, UINT uID = 0, LPCTSTR lpszImgMouseDown = "");
 	BOOL	InsertImage(int nIndex, int nPosX, int nPosY, LPCTSTR lpszImageName, UINT uID = 0, LPCTSTR lpszImgMouseDown = "");
 	BOOL    AddImage(int nPosX, int nPosY, UINT uImageName, UINT uID=0, UINT uMouseDownImage=0);
@@ -212,6 +213,9 @@ public:
 	
 public:
 	TIME_OUT_SET m_stTimeOut;
+
+protected:
+	BOOL m_bDrog;	// 界面是否可拖动
 
 protected:
 	CArray<LPIMAGE_INFO, LPIMAGE_INFO>	m_apImages;
@@ -263,6 +267,31 @@ protected:
 private:
 	void	GetCurExePath();
 
+	// 拖动窗口相关
+protected:
+	CPoint m_ptBeginDrag;			 ///<上一时刻的鼠标位置
+	CPoint m_ptLButtonDown;			 ///<按下鼠标左键时的位置
+	BOOL   m_bEnterEasilyDrag;		 ///<开始拖动标识，用于区分点击按钮还是按住按钮拖动
+	BOOL   m_bLButtonDown;			 ///<鼠标左键按下标识
+
+	/**
+	@brief   进入拖动窗口操作；在鼠标按下时进行
+	@param  [in] ptMouse，鼠标当前位置
+	@return  void
+	*/
+	void EnterEasilyDrag(const CPoint ptMouse);
+
+	/**
+	@brief   鼠标移动时真正的移动窗口
+	@param  [in] ptMouse，鼠标当前位置
+	*/
+	void EasilyDragging(const CPoint ptMouse);
+
+	/**
+	@brief   结束窗口拖动操作；在鼠标弹起时进行
+	*/
+	void ExitEasilyDrag();
+
 public:
 	
 	// Dialog Data
@@ -280,6 +309,7 @@ public:
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	virtual BOOL OnCommand(WPARAM wParam, LPARAM lParam);
+	virtual BOOL PreTranslateMessage(MSG* pMsg);
 	//}}AFX_VIRTUAL
 	
 	// Implementation

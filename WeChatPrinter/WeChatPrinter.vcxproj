@@ -119,6 +119,8 @@
     <ClInclude Include="..\cef\mycef.h" />
     <ClInclude Include="..\cef\simple_app.h" />
     <ClInclude Include="..\cef\simple_handler.h" />
+    <ClInclude Include="..\comm\MakePNG.h" />
+    <ClInclude Include="..\comm\tinyzipinterface.h" />
     <ClInclude Include="..\Config\Config.h" />
     <ClInclude Include="..\http\HttpClient.h" />
     <ClInclude Include="..\include\BasePack.h" />
@@ -135,6 +137,7 @@
     <ClInclude Include="..\include\ImageDlg.h" />
     <ClInclude Include="..\include\InputLanguage.h" />
     <ClInclude Include="..\include\InterfaceReg.h" />
+    <ClInclude Include="..\include\json.hpp" />
     <ClInclude Include="..\include\LOG.H" />
     <ClInclude Include="..\include\LOG2.H" />
     <ClInclude Include="..\include\MD5.H" />
@@ -157,13 +160,9 @@
     <ClInclude Include="..\include\UDPSocketClient.h" />
     <ClInclude Include="Admins.h" />
     <ClInclude Include="CommunicateInterface.h" />
-    <ClInclude Include="json.hpp" />
-    <ClInclude Include="MakePNG.h" />
     <ClInclude Include="Resource.h" />
-    <ClInclude Include="Shell.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="tinyzipinterface.h" />
     <ClInclude Include="ToolsFunction.h" />
     <ClInclude Include="Trade.h" />
     <ClInclude Include="WeChatPrinter.h" />
@@ -179,11 +178,10 @@
     <ClCompile Include="..\cef\simple_handler_win.cc">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\comm\MakePNG.cpp" />
     <ClCompile Include="..\Config\Config.cpp" />
     <ClCompile Include="..\http\HttpClient.cpp" />
     <ClCompile Include="Admins.cpp" />
-    <ClCompile Include="MakePNG.cpp" />
-    <ClCompile Include="Shell.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>

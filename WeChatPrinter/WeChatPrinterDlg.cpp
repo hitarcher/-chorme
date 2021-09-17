@@ -42,6 +42,9 @@ lpRMQ_CALLBACK _RMQ_CALLBACK;
 
 CConfig	g_Config;
 
+HHOOK hMouseHook;
+LRESULT CALLBACK OnMouseEvent(int nCode, WPARAM wParam, LPARAM lParam);
+
 static void CALLBACK _Recv(char* bMsg)
 {
 	g_strRecvMsg = bMsg;
@@ -54,11 +57,9 @@ CWeChatPrinterDlg::CWeChatPrinterDlg(CWnd* pParent /*=NULL*/)
 	: CImageDlg(CWeChatPrinterDlg::IDD, pParent)
 {
 	::CoInitialize(NULL);
-	m_DatabaseName = "CoinRecords.db";//数据库的表名称
 	m_pThis = this;
 	m_strLastErr = "";
 	m_bExit = FALSE;
-	m_bLoadComplete = FALSE;
 	g_CWeChatPrinterDlg = this;
 
 	jrsp = "";
@@ -116,43 +117,40 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	/************************************************************************/
 	/*                        程 序 入 口                                   */
 	/************************************************************************/
+	//=================================
+	// 初始化
+	//=================================
 	SET_LOGTYPE((LOG_TYPE)(LOGTYPE_DEBUG | LOGTYPE_ERROR | LOGTYPE_SPECIAL));
 	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "==============START==============", "");
-// #ifdef DEBUG
-// 	ShowCursor(TRUE);
-// #else
-// 	ShowCursor(FALSE);
-// #endif 
-	//用于更新 自动更新程序
+	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*///删除超过30天的日志
+	LOG_CLEAR(30);
+	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/// 设置全局钩子，用来键入管理界面，以免被其他控件遮挡
+	hMouseHook = SetWindowsHookEx(WH_MOUSE_LL, OnMouseEvent, theApp.m_hInstance, 0);
+	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/// 用于更新 自动更新程序
 	if (CheckFileExist("update.bat"))
 	{
 		StartProcess3(GetFullPath("update.bat")); 
 		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "OnInitDialog", "执行更新程序，替换文件");
 		goto EXIT;
 	}
-	LOG_CLEAR(30);
-
 #ifdef CHECKUPDATE
-	//是否启动自动更新检测
+	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*///是否启动自动更新检测
 	if (FALSE == CheckUpdate())
 	{
 		goto EXIT;
 	}
 #endif
-
-	// 窗口名称 设置窗口名，先去查找，再设置名称。二次启动去查找，找到了就提示，这样可以使程序避免重复运行 
-	SetWindowText(INFO_PUBLISH_SCREEN_NAME);
-	//加载基本配置
+	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*///加载基本配置
 	if (FALSE == g_Config.LoadBaseCfg())
 	{
 		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "OnInitDialog", "[g_Config.LoadBaseCfg()][%s]", g_Config.GetLastErr());
 		goto EXIT;
 	}
+	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*///加载动态库
 	if (FALSE == LoadRMQPubAndRMQSUBDLL())
 	{
 		goto EXIT;
 	}
-
 	DWORD dwThreadId = 0;
 	m_hReSign = CreateThread(NULL, 0, ReSignThreadProc, this, 0, &dwThreadId);
 	m_hRMQ = CreateThread(NULL, 0, RMQThreadProc, this, 0, &dwThreadId);
@@ -160,9 +158,24 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	m_hChooseProgram = CreateThread(NULL, 0, ChooseProgramThreadProc, this, 0, &dwThreadId);
 	m_hHeartBeat = CreateThread(NULL, 0, HeartBeatThreadProc, this, 0, &dwThreadId);
 
-	strHtmlPath = "file:///" + GetFullPath(g_Config.m_strRelatePath + "index.html");
-	strHtmlPath.Replace("\\", "/");
-	ConvertGBKToUtf8(strHtmlPath);
+	//=================================
+	// 窗口属性设置
+	//=================================
+	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*///是否隐藏鼠标
+#ifdef DEBUG
+	ShowCursor(TRUE);
+#else
+	ShowCursor(FALSE);
+#endif 
+	SetWindowText(INFO_PUBLISH_SCREEN_NAME);
+	if (g_Config.m_bTopMost)
+	{
+		::SetWindowPos(GetSafeHwnd(), HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);//最前端
+	}
+	m_strHtmlPath = "file:///" + GetFullPath(g_Config.m_strRelatePath + "index.html");
+	m_strHtmlPath.Replace("\\", "/");
+	ConvertGBKToUtf8(m_strHtmlPath);
+	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*///cef3初始化
 	cef_init();
 	
 	//选择加载的节目json，包含离线压缩包解压，选择紧急插播节目或者是普通节目
@@ -170,20 +183,12 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	{
 		goto EXIT;
 	}
-	//选择节目并加载
 	SetTimer(TIMER_CHOOSEPROGAME, 10, NULL);
-	//隔30天删除一次没有归属的素材
-	DelateResource();
-
 	SetTimer(TIMER_RESIGN, 10, NULL);
-	// 设置当前页面始终显示在最前端
-	if (g_Config.m_bTopMost)
-	{
-		::SetWindowPos(GetSafeHwnd(), HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);//最前端
-	}
 	SetTimer(TIMER_CHECKINCOMPELEDFILE, 3000, NULL);
 	SetTimer(TIMER_CHECKMEMORY, 5000, NULL);
-
+	//隔30天删除一次没有归属的素材
+	DelateResource();
 	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "界面初始化成功");
 	return TRUE;
 EXIT:
@@ -311,7 +316,7 @@ void CWeChatPrinterDlg::cef_init()
 	CRect rect; GetWindowRect(&rect);
 	m_cef_app =
 		new SimpleApp(
-			strHtmlPath.GetBuffer(0)
+			m_strHtmlPath.GetBuffer(0)
 			/*"www.baidu.com"*/
 			, m_hWnd
 			, rect
@@ -2052,26 +2057,21 @@ void CWeChatPrinterDlg::OnTimer(UINT_PTR nIDEvent)
 	CImageDlg::OnTimer(nIDEvent);
 }
 
-
 BEGIN_EVENTSINK_MAP(CWeChatPrinterDlg, CImageDlg)
 //	ON_EVENT(CWeChatPrinterDlg, IDC_EXPLORER_MAIN, 102, CWeChatPrinterDlg::OnStatustextchangeExplorerMain, VTS_BSTR)
 END_EVENTSINK_MAP()
-
-BOOL CWeChatPrinterDlg::PreTranslateMessage(MSG* pMsg)
+/************************************************************************/
+/*                            HOOK                                      */
+/************************************************************************/
+LRESULT CALLBACK OnMouseEvent(int nCode, WPARAM wParam, LPARAM lParam)
 {
-	// TODO: 在此添加专用代码和/或调用基类
-	switch (pMsg->message) {
-	case WM_LBUTTONDOWN:
+	if (wParam == WM_LBUTTONDOWN)
 	{
-		CPoint point;
+		static CPoint point;
 		GetCursorPos(&point);
-		OnAdminEnter(point);
+		g_CWeChatPrinterDlg->OnAdminEnter(point);
 	}
-	break;
-	default:
-		break;
-	}
-	return CImageDlg::PreTranslateMessage(pMsg);
+	return CallNextHookEx(hMouseHook, nCode, wParam, lParam);
 }
 
 void CWeChatPrinterDlg::OnAdminEnter(CPoint point)
@@ -2118,15 +2118,16 @@ BOOL CWeChatPrinterDlg::OnCommand(WPARAM wParam, LPARAM lParam)
 	case BTN_ADMIN_LOGOUT:
 	{
 		{
-			//::SetWindowPos(GetSafeHwnd(), HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);//最前端
-			//m_strAdminEnter = "";
-			//int nResult = m_admin.DoModal();
-			//if (nResult == 1)
-			//{
-			//	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnCommand", "用户输入密码：3333 后程序退出");
-			//	EndDialog(TRUE);
-			//}
-			//::SetWindowPos(GetSafeHwnd(), HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);//最前端
+			::SetWindowPos(GetSafeHwnd(), HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);//最前端
+			m_strAdminEnter = "";
+			CAdmins m_admin;
+			int nResult = m_admin.DoModal();
+			if (nResult == 1)
+			{
+				LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnCommand", "用户输入密码：3333 后程序退出");
+				EndDialog(TRUE);
+			}
+			::SetWindowPos(GetSafeHwnd(), HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);//最前端
 		}
 	}
 	break;
@@ -2148,8 +2149,6 @@ BOOL CWeChatPrinterDlg:: StartProcess3(CString strpath)
 //  	}
 	return TRUE;
 }
-
-
 
 int UrlEncodeUtf8_(LPCSTR pszUrl, LPSTR pszEncode, int nEncodeLen)
 {
@@ -2466,14 +2465,13 @@ void GetSystemMemoryInfo()
 	LOG2(LOGTYPE_DEBUG, LOG_NAME_MEMORY, "GetSystemMemoryInfo", "%s", strInfo);
 	CloseHandle(handle);
 
-	//虚拟内存使用率 >85 或者  已使用内存 大雨1100 MB 就重启程序
+	//虚拟内存使用率 >85 或者  已使用内存 >1100 MB 就重启程序
 	if (/*percent_memory_virtual >85 ||*/ usedMemory >1100)
 	{
 		LOG2(LOGTYPE_DEBUG, LOG_NAME_MEMORY, "GetSystemMemoryInfo", "\n程序即将重启\n");
-		//RobotProgamme();
+		RobotProgamme();
 	}
 }
-
 
 void RobotProgamme()
 {
@@ -2501,3 +2499,4 @@ void RobotProgamme()
 		&StartInfo,
 		&procStruct);
 }
+
