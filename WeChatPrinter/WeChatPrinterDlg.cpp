@@ -2118,15 +2118,15 @@ BOOL CWeChatPrinterDlg::OnCommand(WPARAM wParam, LPARAM lParam)
 	case BTN_ADMIN_LOGOUT:
 	{
 		{
-			::SetWindowPos(GetSafeHwnd(), HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);//最前端
-			m_strAdminEnter = "";
-			int nResult = m_admin.DoModal();
-			if (nResult == 1)
-			{
-				LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnCommand", "用户输入密码：3333 后程序退出");
-				EndDialog(TRUE);
-			}
-			::SetWindowPos(GetSafeHwnd(), HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);//最前端
+			//::SetWindowPos(GetSafeHwnd(), HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);//最前端
+			//m_strAdminEnter = "";
+			//int nResult = m_admin.DoModal();
+			//if (nResult == 1)
+			//{
+			//	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnCommand", "用户输入密码：3333 后程序退出");
+			//	EndDialog(TRUE);
+			//}
+			//::SetWindowPos(GetSafeHwnd(), HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);//最前端
 		}
 	}
 	break;

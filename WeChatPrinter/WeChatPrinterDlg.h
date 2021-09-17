@@ -237,7 +237,7 @@ public:
 	//退出时的密码
 	CString m_strAdminEnter ;
 	//退出密码后的弹窗
-	CAdmins m_admin;
+	//CAdmins m_admin;
 
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
 	void CWeChatPrinterDlg::OnAdminEnter(CPoint point);
