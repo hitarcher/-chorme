@@ -16,6 +16,8 @@
 using json = nlohmann::json;
 #include "Admins.h"
 #include "Config.h"
+#include <stdio.h>
+
 #ifdef DEBUG                            
 #pragma comment(lib, "CommUtilsd.lib")  
 #else                                   
@@ -89,11 +91,12 @@ private:
 	CTrade g_toolTrade;
 	int m_nMode;													//单节目还是多节目
 
-	CString m_strHtmlPath;
+	CString m_strHtmlPath;											//H5页面路径
 
 	//签到线程
 	HANDLE m_hReSign;
 	HANDLE m_hReSignEvent;
+
 	//RabbitMQ调用
 	HANDLE m_hRMQ;
 	HANDLE m_hRMQEvent;

@@ -51,16 +51,16 @@ static void CALLBACK _Recv(char* bMsg)
 	g_CWeChatPrinterDlg->SetTimer(TIMER_RECV_MSG, 10, NULL);
 }
 
-CWeChatPrinterDlg * CWeChatPrinterDlg::m_pThis = NULL;
 
 CWeChatPrinterDlg::CWeChatPrinterDlg(CWnd* pParent /*=NULL*/)
 	: CImageDlg(CWeChatPrinterDlg::IDD, pParent)
 {
 	::CoInitialize(NULL);
-	m_pThis = this;
 	m_strLastErr = "";
 	m_bExit = FALSE;
 	g_CWeChatPrinterDlg = this;
+	m_nMode = 0;
+	m_strHtmlPath = "";
 
 	jrsp = "";
 	jTemplate = "";
@@ -69,6 +69,7 @@ CWeChatPrinterDlg::CWeChatPrinterDlg(CWnd* pParent /*=NULL*/)
 	jDefault = "";
 	jOverdue = "";
 	jForIE = "";
+
 	m_iNextBitSpace = 1;
 	m_strLastSignTime = "";
 	m_OnlineTime = "";
@@ -88,8 +89,8 @@ CWeChatPrinterDlg::CWeChatPrinterDlg(CWnd* pParent /*=NULL*/)
 	m_hDviceStatus = NULL;
 	m_hDviceStatusEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 
-	m_hHeartBeat = NULL;
-	m_hHeartBeatEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+// 	m_hHeartBeat = NULL;
+// 	m_hHeartBeatEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
 
@@ -2118,16 +2119,16 @@ BOOL CWeChatPrinterDlg::OnCommand(WPARAM wParam, LPARAM lParam)
 	case BTN_ADMIN_LOGOUT:
 	{
 		{
-			::SetWindowPos(GetSafeHwnd(), HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);//最前端
+		//	::SetWindowPos(GetSafeHwnd(), HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);//最前端
 			m_strAdminEnter = "";
 			CAdmins m_admin;
 			int nResult = m_admin.DoModal();
 			if (nResult == 1)
 			{
-				LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnCommand", "用户输入密码：3333 后程序退出");
+				LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnCommand", "用户输入密码：33 后程序退出");
 				EndDialog(TRUE);
 			}
-			::SetWindowPos(GetSafeHwnd(), HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);//最前端
+		//	::SetWindowPos(GetSafeHwnd(), HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);//最前端
 		}
 	}
 	break;
@@ -2499,4 +2500,3 @@ void RobotProgamme()
 		&StartInfo,
 		&procStruct);
 }
-
