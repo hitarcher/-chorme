@@ -126,7 +126,9 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*///删除超过30天的日志
 	LOG_CLEAR(30);
 	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/// 设置全局钩子，用来键入管理界面，以免被其他控件遮挡
+#ifdef STARTHOOK
 	hMouseHook = SetWindowsHookEx(WH_MOUSE_LL, OnMouseEvent, theApp.m_hInstance, 0);
+#endif
 	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/// 用于更新 自动更新程序
 	if (CheckFileExist("update.bat"))
 	{
@@ -184,7 +186,7 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	{
 		goto EXIT;
 	}
-	SetTimer(TIMER_CHOOSEPROGAME, 10, NULL);
+	SetTimer(TIMER_CHOOSEPROGAME,10, NULL);
 	SetTimer(TIMER_RESIGN, 10, NULL);
 	SetTimer(TIMER_CHECKINCOMPELEDFILE, 3000, NULL);
 	SetTimer(TIMER_CHECKMEMORY, 5000, NULL);
@@ -1777,7 +1779,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 					if (PLAY_ALLDAY == iPlayMode)
 					{
 						jForIE = jData["itemtemplatejson"];
-						SetTimer(TIMER_LOADPAGE, 500, NULL);
+						SetTimer(TIMER_LOADPAGE, 6000, NULL);
 						LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放当前节目，单节目，全天");
 					}
 					//2 分时段播放模式
@@ -1792,7 +1794,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 							if (iCurTime >= vecHM[i] && iCurTime <= vecHM[i + 1])
 							{
 								bInTimeArea = TRUE;
-								SetTimer(TIMER_LOADPAGE, 500, NULL);
+								SetTimer(TIMER_LOADPAGE, 6000, NULL);
 								iCloseRemainingTime = GetCloseTime(vecHM, iCurTime);
 								SetTimer(TIMER_CHOOSEPROGAME, iCloseRemainingTime * 1000, NULL);
 								LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放当前节目，单节目，将于%d分钟后切换到其他节目", (int)(iCloseRemainingTime/60));
@@ -1803,7 +1805,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 						if (FALSE == bInTimeArea)
 						{
 							jForIE = jDefault["body"]["data"]["itemtemplatejson"];//修改当前json,加载默认的
-							SetTimer(TIMER_LOADPAGE, 500, NULL);
+							SetTimer(TIMER_LOADPAGE, 6000, NULL);
 							iRemainingTime = GetWaitTime(vecHM, iCurTime);
 							SetTimer(TIMER_CHOOSEPROGAME, iRemainingTime * 1000, NULL);
 							LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放默认节目，单节目，将于%d分钟后切换当前节目", (int)(iRemainingTime / 60));
@@ -1822,7 +1824,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 					{
 						g_bIsTemproaryOn = TRUE;
 						jForIE = jData["itemtemplatejson"];
-						SetTimer(TIMER_LOADPAGE, 500, NULL);
+						SetTimer(TIMER_LOADPAGE, 6000, NULL);
 						LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放紧急插播节目，全天");
 					}
 					//2 分时段播放模式
@@ -1838,7 +1840,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 							{
 								g_bIsTemproaryOn = TRUE;
 								bInTimeArea = TRUE;
-								SetTimer(TIMER_LOADPAGE, 500, NULL);
+								SetTimer(TIMER_LOADPAGE, 6000, NULL);
 								iCloseRemainingTime = GetCloseTime(vecHM, iCurTime);
 								SetTimer(TIMER_CHOOSEPROGAME, iCloseRemainingTime * 1000, NULL);
 								LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放紧急插播节目，将于%d分钟后切换到其他节目", (int)(iCloseRemainingTime / 60));
@@ -1884,7 +1886,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 					{
 						if (g_strItemid.CompareNoCase(strTempItemID) == 0 )
 						{
-							SetTimer(TIMER_LOADPAGE, 500, NULL);
+							SetTimer(TIMER_LOADPAGE, 6000, NULL);
 							g_strItemid = strTempItemID;
 							bUnderSwitchMode = FALSE;
 							break;
@@ -1952,7 +1954,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 					//有符合时间的就退出循环
 					if (bInTimeArea)
 					{
-						SetTimer(TIMER_LOADPAGE, 500, NULL);
+						SetTimer(TIMER_LOADPAGE, 6000, NULL);
 						iCloseRemainingTime = GetCloseTime(vecHM, iCurTime);
 						SetTimer(TIMER_CHOOSEPROGAME, iCloseRemainingTime * 1000, NULL);
 						LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放多节目，将于%d分钟后切换到其他节目", (int)(iCloseRemainingTime / 60));
@@ -1962,7 +1964,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 					else
 					{
 						jForIE = jDefault["body"]["data"]["itemtemplatejson"];//修改当前json,加载默认的
-						SetTimer(TIMER_LOADPAGE, 500, NULL);
+						SetTimer(TIMER_LOADPAGE, 6000, NULL);
 						//当传入的为周重复和自定义模式，在函数中判断为末尾需要转一天的情况，就不执行倒计时
 						iRemainingTime = GetWaitTime(vecALLHM, iCurTime, iPlayMode);
 						if (iRemainingTime >= 0)
