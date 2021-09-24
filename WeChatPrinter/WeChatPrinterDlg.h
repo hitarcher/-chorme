@@ -135,9 +135,8 @@ private:
 	CefRefPtr<SimpleApp> m_cef_app;								    
 	void cef_init();											    
 	void cef_close();											    
-	void cef_load_url(std::string url);							    
-	void cef_exec_js(std::string js);							    
- 
+	void cef_load_url(IN std::string _utf_url, IN int delay=0);
+	void cef_exec_js(IN std::string _utf_js, IN int delay = 0); 
 	// º”‘ÿƒ£∞Â
 	void LoadTemplate();
 
