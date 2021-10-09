@@ -69,15 +69,12 @@ BOOL CheckFileExist(CString filepath);
 //
 CString GetFileName(CString strFilePath);
 
-#define _WIN32_WINNT  0x0501 // I misunderstand that
 
-float GetMemory()
-{
-	MEMORYSTATUSEX statex;
-	statex.dwLength = sizeof(statex); // I misunderstand that
-	GlobalMemoryStatusEx(&statex);
-	return (float)statex.ullTotalPhys / (1024 * 1024 * 1024);
-}
-
+float GetMemory();
 
 BOOL Base64decodePic(std::string  strBase64, CString strFilePath);
+
+
+int UrlEncodeUtf8_(LPCSTR pszUrl, LPSTR pszEncode, int nEncodeLen);
+
+BOOL HTTP_Download2(CString strURL, CString strFilePath, CString strUsername, CString strPassword, CString strProxyList);

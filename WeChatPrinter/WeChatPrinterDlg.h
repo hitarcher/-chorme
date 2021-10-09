@@ -290,8 +290,6 @@ int GetWaitTime(vector<int>vecHM, int iCurrentTime, int iPlayMode = 1);
 \************************************************************************/
 int GetCloseTime(vector<int>vecHM, int iCurrentTime);				
 
-BOOL HTTP_Download2(CString strURL, CString strFilePath, CString strUsername, CString strPassword, CString strProxyList);
-
 void GetSystemMemoryInfo();
 
 //÷ÿ∆Ù≥Ã–Ú
