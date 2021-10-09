@@ -262,6 +262,26 @@ CString Base64EncodePic(CString strPicPath)
 	return strData.c_str();
 }
 
+BOOL Base64decodePic(std::string  strBase64, CString strFilePath)
+{
+	HANDLE hFile;
+	hFile = CreateFile(strFilePath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hFile == INVALID_HANDLE_VALUE)
+	{
+		return FALSE;
+	}
+	std::string strData = base64_decode(strBase64);
+	DWORD dwReturn;
+	if (!WriteFile(hFile, strData.data(), strData.length(), &dwReturn, NULL))
+	{
+		CloseHandle(hFile);
+		return FALSE;
+	}
+	CloseHandle(hFile);
+	return TRUE;
+}	
+
+
 BOOL CheckFileExist(CString filepath)
 {
 	return exist(filepath.GetBuffer(0)) ? TRUE : FALSE;

@@ -3,9 +3,9 @@
 #ifndef __MY_OS__H__
 #define __MY_OS__H__
 
+#include "stdafx.h"
 #include <fstream>
 #include <sstream>
-#include <tchar.h>
 
 #include "mystring.h"
 
@@ -79,6 +79,236 @@ void easyWriteData(std::string filefullpath, const char* data, size_t length)
 /************************************************************************/
 /*                                系统操作                              */
 /************************************************************************/
+// 创建线程
+inline
+DWORD InitThread(HANDLE &p_h, HANDLE &p_hEvent, _In_ LPTHREAD_START_ROUTINE lpStartAddress, _In_opt_ __drv_aliasesMem LPVOID lpParameter) {
+	DWORD dwThreadId = 0;
+	p_h = CreateThread(NULL, 0, lpStartAddress, lpParameter, 0, &dwThreadId);
+	p_hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+	return dwThreadId;
+}
+
+// 释放线程
+inline
+void UnintThread(HANDLE &p_h, HANDLE &p_hEvent, BOOL &bExit) {
+	bExit = true;
+	SetEvent(p_hEvent);
+	WaitForSingleObject(p_h, 10000);
+}
+
+// 截屏
+inline
+BOOL GetScreenShot(std::string &encodedImage)
+{
+	//////////////////////////////////////////////////////////////////////////
+	// 参考：https://stackoverflow.com/questions/36544155/converting-a-screenshot-bitmap-to-jpeg-in-memory
+	// 参考：https://stackoverflow.com/questions/3291167/how-can-i-take-a-screenshot-in-a-windows-application
+	// 参考：https://stackoverflow.com/questions/33305379/c-bitmap-to-base64
+	//////////////////////////////////////////////////////////////////////////
+
+	// get the device context of the screen
+	HDC hScreenDC = CreateDC("DISPLAY", NULL, NULL, NULL);
+	// and a device context to put it in
+	HDC hMemoryDC = CreateCompatibleDC(hScreenDC);
+
+	int width = GetDeviceCaps(hScreenDC, HORZRES);
+	int height = GetDeviceCaps(hScreenDC, VERTRES);
+
+	// maybe worth checking these are positive values
+	HBITMAP hBitmap = CreateCompatibleBitmap(hScreenDC, width, height);
+
+	// get a new bitmap
+	HBITMAP hOldBitmap = (HBITMAP)SelectObject(hMemoryDC, hBitmap);
+
+	BitBlt(hMemoryDC, 0, 0, width, height, hScreenDC, 0, 0, SRCCOPY);
+	hBitmap = (HBITMAP)SelectObject(hMemoryDC, hOldBitmap);
+
+	// screenshot to jpg and save to stream
+	fstream fi;
+	vector<BYTE> buf;
+	IStream *stream = NULL;
+	HRESULT hr = CreateStreamOnHGlobal(0, TRUE, &stream);
+	CImage image;
+	ULARGE_INTEGER liSize;
+
+	image.Attach(hBitmap);
+	image.Save(stream, Gdiplus::ImageFormatJPEG);
+	IStream_Size(stream, &liSize);
+	DWORD len = liSize.LowPart;
+	IStream_Reset(stream);
+	buf.resize(len);
+	IStream_Read(stream, &buf[0], len);
+	stream->Release();
+
+	// just testing if the buf contains the correct data
+	fi.open("data/screenshot.jpg", fstream::binary | fstream::out);
+	fi.write(reinterpret_cast<const char*>(&buf[0]), buf.size() * sizeof(BYTE));
+	fi.close();
+
+	// to base64
+	encodedImage = base64_encode(reinterpret_cast<const unsigned char*>(&buf[0]), buf.size() * sizeof(BYTE));
+
+	// clean up
+	DeleteDC(hMemoryDC);
+	DeleteDC(hScreenDC);
+	return TRUE;
+}
+
+// 获取mac地址
+// http://study.marearts.com/2017/01/get-mac-address-in-mfc.html
+inline
+CString GetMACAddress()
+{
+	CString strGateWay = _T("");
+	CString strMACAddress = _T("");
+	IP_ADAPTER_INFO ipAdapterInfo[10];
+	DWORD dwBuflen = sizeof(ipAdapterInfo);
+
+	DWORD dwStatus = GetAdaptersInfo(ipAdapterInfo, &dwBuflen);
+	if (dwStatus != ERROR_SUCCESS)
+	{
+		strMACAddress.Format(_T("Error for GetAdaptersInfo : %d"), dwStatus);
+		return strMACAddress;
+	}
+	PIP_ADAPTER_INFO pIpAdapterInfo = ipAdapterInfo;
+	do {
+		strGateWay = (CString)pIpAdapterInfo->GatewayList.IpAddress.String;
+		if (strGateWay[0] == '0')
+		{
+			pIpAdapterInfo = pIpAdapterInfo->Next;
+		}
+		else
+		{
+			strMACAddress.Format(_T("%02X-%02X-%02X-%02X-%02X-%02X"),
+				pIpAdapterInfo->Address[0],
+				pIpAdapterInfo->Address[1],
+				pIpAdapterInfo->Address[2],
+				pIpAdapterInfo->Address[3],
+				pIpAdapterInfo->Address[4],
+				pIpAdapterInfo->Address[5]
+			);
+
+			break;
+		}
+	} while (pIpAdapterInfo);
+
+	return strMACAddress;
+}
+
+// 通过ip获取mac地址
+// http://study.marearts.com/2017/01/get-mac-address-in-mfc.html
+#include <nb30.h>
+inline
+#pragma  comment(lib, "Netapi32.lib")
+CString GetMacAddressbyIP(CString strIP)
+{
+	NCB Ncb;
+	UCHAR uRetCode;
+	LANA_ENUM lenum;
+	int i;
+	CString strOutput = _T("");
+	CString string;
+	ADAPTER_STATUS Adapter;
+	memset(&Ncb, 0, sizeof(Ncb));
+	Ncb.ncb_command = NCBENUM;
+	Ncb.ncb_buffer = (UCHAR *)&lenum;
+	Ncb.ncb_length = sizeof(lenum);
+	uRetCode = Netbios(&Ncb);
+	for (i = 0; i < lenum.length; i++)
+	{
+		memset(&Ncb, 0, sizeof(Ncb));
+		Ncb.ncb_command = NCBRESET;
+		Ncb.ncb_lana_num = lenum.lana[i];
+		uRetCode = Netbios(&Ncb);
+
+		memset(&Ncb, 0, sizeof(Ncb));
+		Ncb.ncb_command = NCBASTAT;
+		Ncb.ncb_lana_num = lenum.lana[i];
+		strcpy_s((char*)Ncb.ncb_callname, sizeof(Ncb.ncb_callname), (LPSTR)(LPCTSTR)strIP.GetBuffer(0));
+		Ncb.ncb_buffer = (unsigned char *)&Adapter;
+		Ncb.ncb_length = sizeof(Adapter);
+		uRetCode = Netbios(&Ncb);
+		if (uRetCode == 0)
+		{
+			string.Format(_T("%02X:%02X:%02X:%02X:%02X:%02X"),
+				Adapter.adapter_address[0],
+				Adapter.adapter_address[1],
+				Adapter.adapter_address[2],
+				Adapter.adapter_address[3],
+				Adapter.adapter_address[4],
+				Adapter.adapter_address[5]);
+			strOutput += string;
+		}
+	}
+
+	return strOutput;
+}
+
+// 判断是否是64位系统
+// https://www.yisu.com/zixun/352330.html
+inline
+bool is_64bitsystem()
+{
+	SYSTEM_INFO si;
+	GetNativeSystemInfo(&si);
+	if (si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64 ||
+		si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_IA64)
+		return true;
+	else
+		return false;
+}
+
+/* voice control start */
+#pragma comment( lib, "winmm" )
+#include <mmsyscom.h>
+#include <mmeapi.h>
+#include <mmdeviceapi.h>
+#include <endpointvolume.h>
+
+// 声音调节
+inline
+int voice_volume(float volume)
+{
+	HRESULT hr = CoInitialize(NULL);
+	if (FAILED(hr)) return 1;
+
+	IMMDeviceEnumerator *deviceEnumerator = NULL;
+	hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), NULL, CLSCTX_INPROC_SERVER,
+		__uuidof(IMMDeviceEnumerator), (LPVOID *)&deviceEnumerator);
+	IMMDevice *defaultDevice = NULL;
+	hr = deviceEnumerator->GetDefaultAudioEndpoint(eRender, eConsole, &defaultDevice);
+	if (FAILED(hr)) return 2;
+
+	deviceEnumerator->Release();
+	deviceEnumerator = NULL;
+
+	IAudioEndpointVolume *endpointVolume;
+	hr = defaultDevice->Activate(__uuidof(IAudioEndpointVolume)
+		, CLSCTX_INPROC_SERVER, NULL, reinterpret_cast<void **>(&endpointVolume));
+	if (FAILED(hr)) return 3;
+
+	BOOL currentMute;
+	hr = endpointVolume->GetMute(&currentMute);
+	if (FAILED(hr)) return 4;
+
+	if (currentMute == TRUE)
+	{
+		hr = endpointVolume->SetMute(FALSE, NULL);
+	}
+	float currentVolume;
+	hr = endpointVolume->GetMasterVolumeLevelScalar(&currentVolume); //把主音量的水平标量
+	if (FAILED(hr)) return 5;
+
+	CString str;
+	str.Format("Current Volume is: %f", currentVolume);
+
+	hr = endpointVolume->SetMasterVolumeLevelScalar(volume / 100, NULL);
+	if (FAILED(hr)) return 6;
+
+	return 0;
+}
+/* voice control end */
+
 #include <time.h>
 // 获取当前是周几
 inline

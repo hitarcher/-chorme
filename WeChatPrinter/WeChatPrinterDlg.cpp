@@ -161,6 +161,8 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	m_hChooseProgram = CreateThread(NULL, 0, ChooseProgramThreadProc, this, 0, &dwThreadId);
 	m_hHeartBeat = CreateThread(NULL, 0, HeartBeatThreadProc, this, 0, &dwThreadId);
 
+	// 启动代理
+	ProxyStart_http();
 	//=================================
 	// 窗口属性设置
 	//=================================
@@ -256,6 +258,78 @@ void CWeChatPrinterDlg::OnDestroy()
 	//cef_close();
 	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "==============DESTROY==============", "");
 	CImageDlg::OnDestroy();
+}
+
+void CWeChatPrinterDlg::ProxyStart_http()
+{
+	// 创建http代理
+	server_httpproxy.Post("/cpp", [&](const Request &req, Response &res, const ContentReader &content_reader) {
+		std::string body;
+		content_reader([&](const char *data, size_t data_length) {
+			body.append(data, data_length);
+			return true;
+		});
+	
+	    // 处理
+	    std::string replay;
+		ProxyConsume_http(req.path, body, replay);//处理H5的信息
+		//LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "replay  :%s", replay.c_str());
+		//res.set_content(replay.c_str(), "json");//返回给H5
+	});
+	std::thread thread_proxy_http([&]() {
+		bool bRet = server_httpproxy.listen("0.0.0.0", 8866);//监听H5的消息
+	});
+	thread_proxy_http.detach();
+}
+
+void CWeChatPrinterDlg::ProxyConsume_http(IN std::string path, IN std::string request, OUT std::string & replay)
+{
+	json jrequeset = json::parse(easytoGBK(request).c_str());
+	
+	if (jrequeset["code"] == "zip")
+	{
+		//保存压缩后的文件
+		//	replay = "ziping";
+		std::string strBase64 = jrequeset["file"].get<std::string>();
+		std::string name = jrequeset["name"];
+		Base64decodePic(strBase64, GetFullPath(g_Config.m_strRelatePath + name.c_str()));
+	}
+	else if (jrequeset["code"] == "zipok")
+	{
+		//压缩ok   -->  加载loadtem  force
+		//	replay = "okokok";
+		SetTimer(TIMER_LOADPAGE, 500, NULL);
+	}
+}
+
+BOOL CWeChatPrinterDlg::PostZipList()
+{
+	bool b1 = is_64bitsystem();
+	float b2 = GetMemory();
+
+	if (b1 || b2 < 4)
+	{
+		vector<CString>vecTemp;
+		vector<CString>vecImg;
+		FindContent(jTemplate, vecTemp);
+		for (unsigned int i = 0; i < vecTemp.size(); i++)
+		{
+			if ((vecTemp[i].Find("jpg")>=0) || (vecTemp[i].Find("png") >= 0))
+			{
+				vecImg.push_back(vecTemp[i]);
+			}
+		}
+		json jTemp;
+		jTemp["img"] = vecImg;
+
+		CString strContent = jTemp.dump().c_str();
+		ConvertGBKToUtf8(strContent);
+		CString strInitInterface;
+		strInitInterface.Format(_T("PostZipList('%s');"), strContent);
+		cef_exec_js(strInitInterface.GetBuffer(0));
+		return FALSE;
+	}
+	return TRUE;
 }
 
 void CWeChatPrinterDlg::LoadTemplate()
@@ -2033,7 +2107,10 @@ void CWeChatPrinterDlg::OnTimer(UINT_PTR nIDEvent)
 		SetEvent(m_hReSignEvent);
 		break;
 	case TIMER_LOADPAGE:
-		LoadTemplate();
+		if (PostZipList())
+		{
+			LoadTemplate();
+		}
 		break;
 	case TIMER_RECV_MSG:				//获取数据
 		SetEvent(m_hRMQEvent);

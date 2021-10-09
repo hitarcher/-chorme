@@ -192,6 +192,12 @@
     <ClInclude Include="WeChatPrinter.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\myhttp.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\httplib.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

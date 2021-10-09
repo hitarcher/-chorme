@@ -41,6 +41,8 @@ using json = nlohmann::json;
 #include "mycef.h"
 #include "simple_app.h"
 #include "simple_handler.h"
+
+#include "myhttp.h"
 /************************************************************************/
 /*                              常    量                                */
 /************************************************************************/
@@ -207,6 +209,15 @@ private:
 // 	//启动在线节目，将当前的template 改成templaiteOffline。templateonline 改成 template
 // 	void SwitchJsonToOnline();
 	void sleepFunction1(int Time);//伪动态的sleep，用于长时间睡眠却无法主动退出的线程
+
+	//通知H5，将素材文件传递过
+	BOOL PostZipList();
+
+	// 启动代理
+	void ProxyStart_http();
+	// 代理-邮储总行 http
+	httplib::Server server_httpproxy;
+	void ProxyConsume_http(IN std::string path, IN std::string request, OUT std::string & replay);
 
 public:
 	// 窗口大小

@@ -53,7 +53,7 @@
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)bin\</OutDir>
     <IncludePath>$(SolutionDir)http\;$(SolutionDir)socket\;$(SolutionDir)config\;$(SolutionDir)comm\;$(SolutionDir)json\;$(SolutionDir)include\;$(SolutionDir)cef91;$(SolutionDir)cef;./;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)lib\;..\cef91;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)lib\;..\cef91;C:\OpenSSL-Win32\lib;$(LibraryPath)</LibraryPath>
     <TargetName>InfoPublishScreen</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -134,6 +134,7 @@
     <ClInclude Include="..\include\DLL.H" />
     <ClInclude Include="..\include\FileOper.h" />
     <ClInclude Include="..\include\Ftp.h" />
+    <ClInclude Include="..\include\httplib.h" />
     <ClInclude Include="..\include\ImageBase.h" />
     <ClInclude Include="..\include\ImageDlg.h" />
     <ClInclude Include="..\include\InputLanguage.h" />
@@ -142,6 +143,7 @@
     <ClInclude Include="..\include\LOG.H" />
     <ClInclude Include="..\include\LOG2.H" />
     <ClInclude Include="..\include\MD5.H" />
+    <ClInclude Include="..\include\myhttp.h" />
     <ClInclude Include="..\include\mylog.h" />
     <ClInclude Include="..\include\myos.h" />
     <ClInclude Include="..\include\mystring.h" />
