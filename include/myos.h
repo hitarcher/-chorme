@@ -32,7 +32,53 @@ bool mkdir(const char* folder)
 inline 
 void rmdir(const char* folder)
 {
-	std::experimental::filesystem::remove_all(folder);
+	try
+	{
+		std::experimental::filesystem::remove_all(folder);
+	}
+	catch (const std::exception&)
+	{
+	}
+}
+
+inline
+void rm(const char* file)
+{
+	try
+	{
+		std::experimental::filesystem::remove(file);
+	}
+	catch (const std::exception&)
+	{
+	}
+}
+
+inline
+bool mv(const char* from, const char* to)
+{
+	try
+	{
+		std::experimental::filesystem::rename(from, to);
+	}
+	catch (const std::exception&)
+	{
+		return false;
+	}
+	return true;
+}
+
+inline
+bool copyto(const char* from, const char* to)
+{
+	try
+	{
+		std::experimental::filesystem::copy(from, to);
+	}
+	catch (const std::exception&)
+	{
+		return false;
+	}
+	return true;
 }
 
 inline
