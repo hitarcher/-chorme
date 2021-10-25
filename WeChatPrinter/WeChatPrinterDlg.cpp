@@ -321,7 +321,7 @@ void CWeChatPrinterDlg::OnDestroy()
 // 		}
 // 		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ProxyConsume_http", "压缩完成，启动程序");
 // 
-// 		SetTimer(TIMER_LOADPAGE, 500, NULL);
+// 		SetTimer(TIMER_LOADPAGE, DELAY_TIME*1000, NULL);
 // 		g_nZipnum = 0;
 // 		g_nZipStatus = 2;
 // 
@@ -365,7 +365,7 @@ BOOL CWeChatPrinterDlg::ZipImg()
 		}
 		g_nZipStatus = 2;
 	}
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "压缩完成 %d,%f\n",b1,b2);
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "压缩完成 ,系统为%d,内存大小为%fGB\n",b1?64:32,b2);
 	return TRUE;
 }
 
@@ -1897,7 +1897,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 					if (PLAY_ALLDAY == iPlayMode)
 					{
 						jForIE = jData["itemtemplatejson"];
-						SetTimer(TIMER_LOADPAGE, 500, NULL);
+						SetTimer(TIMER_LOADPAGE, DELAY_TIME*1000, NULL);
 						LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放当前节目，单节目，全天");
 					}
 					//2 分时段播放模式
@@ -1912,7 +1912,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 							if (iCurTime >= vecHM[i] && iCurTime <= vecHM[i + 1])
 							{
 								bInTimeArea = TRUE;
-								SetTimer(TIMER_LOADPAGE, 500, NULL);
+								SetTimer(TIMER_LOADPAGE, DELAY_TIME*1000, NULL);
 								iCloseRemainingTime = GetCloseTime(vecHM, iCurTime);
 								SetTimer(TIMER_CHOOSEPROGAME, iCloseRemainingTime * 1000, NULL);
 								LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放当前节目，单节目，将于%d分钟后切换到其他节目", (int)(iCloseRemainingTime/60));
@@ -1923,7 +1923,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 						if (FALSE == bInTimeArea)
 						{
 							jForIE = jDefault["body"]["data"]["itemtemplatejson"];//修改当前json,加载默认的
-							SetTimer(TIMER_LOADPAGE, 500, NULL);
+							SetTimer(TIMER_LOADPAGE, DELAY_TIME*1000, NULL);
 							iRemainingTime = GetWaitTime(vecHM, iCurTime);
 							SetTimer(TIMER_CHOOSEPROGAME, iRemainingTime * 1000, NULL);
 							LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放默认节目，单节目，将于%d分钟后切换当前节目", (int)(iRemainingTime / 60));
@@ -1942,7 +1942,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 					{
 						g_bIsTemproaryOn = TRUE;
 						jForIE = jData["itemtemplatejson"];
-						SetTimer(TIMER_LOADPAGE, 500, NULL);
+						SetTimer(TIMER_LOADPAGE, DELAY_TIME*1000, NULL);
 						LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放紧急插播节目，全天");
 					}
 					//2 分时段播放模式
@@ -1958,7 +1958,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 							{
 								g_bIsTemproaryOn = TRUE;
 								bInTimeArea = TRUE;
-								SetTimer(TIMER_LOADPAGE, 500, NULL);
+								SetTimer(TIMER_LOADPAGE, DELAY_TIME*1000, NULL);
 								iCloseRemainingTime = GetCloseTime(vecHM, iCurTime);
 								SetTimer(TIMER_CHOOSEPROGAME, iCloseRemainingTime * 1000, NULL);
 								LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放紧急插播节目，将于%d分钟后切换到其他节目", (int)(iCloseRemainingTime / 60));
@@ -2004,7 +2004,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 					{
 						if (g_strItemid.CompareNoCase(strTempItemID) == 0 )
 						{
-							SetTimer(TIMER_LOADPAGE, 500, NULL);
+							SetTimer(TIMER_LOADPAGE, DELAY_TIME*1000, NULL);
 							g_strItemid = strTempItemID;
 							bUnderSwitchMode = FALSE;
 							break;
@@ -2072,7 +2072,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 					//有符合时间的就退出循环
 					if (bInTimeArea)
 					{
-						SetTimer(TIMER_LOADPAGE, 500, NULL);
+						SetTimer(TIMER_LOADPAGE, DELAY_TIME*1000, NULL);
 						iCloseRemainingTime = GetCloseTime(vecHM, iCurTime);
 						SetTimer(TIMER_CHOOSEPROGAME, iCloseRemainingTime * 1000, NULL);
 						LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始播放多节目，将于%d分钟后切换到其他节目", (int)(iCloseRemainingTime / 60));
@@ -2082,7 +2082,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 					else
 					{
 						jForIE = jDefault["body"]["data"]["itemtemplatejson"];//修改当前json,加载默认的
-						SetTimer(TIMER_LOADPAGE, 500, NULL);
+						SetTimer(TIMER_LOADPAGE, DELAY_TIME*1000, NULL);
 						//当传入的为周重复和自定义模式，在函数中判断为末尾需要转一天的情况，就不执行倒计时
 						iRemainingTime = GetWaitTime(vecALLHM, iCurTime, iPlayMode);
 						if (iRemainingTime >= 0)
