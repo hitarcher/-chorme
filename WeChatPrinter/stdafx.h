@@ -46,8 +46,10 @@
 
 //Release用
 //#define  CHECKUPDATE		//启动自动更新
-//#define STARTHOOK			//启动钩子
 #define  AVOIDREPEATRUN		//避免重复运行
+#define  ZIPIMGANYWAY		//无视系统内存，直接压缩图片素材
+
+//#define STARTHOOK			//启动钩子
 
 //DEBUG用 
 //#define  DETAIlEDLOG			//启用详细日志  

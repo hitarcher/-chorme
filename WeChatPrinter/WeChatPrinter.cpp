@@ -51,6 +51,8 @@ BOOL CWeChatPrinterApp::InitInstance()
 
 	CWinApp::InitInstance();
 	AfxInitRichEdit2();
+	Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+	Gdiplus::GdiplusStartup(&m_gdiplusToken, &gdiplusStartupInput, NULL);
 
 	AfxEnableControlContainer();
 

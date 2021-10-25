@@ -81,9 +81,6 @@
     <ClInclude Include="..\include\Ftp.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ImageBase.h">
-      <Filter>include</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\ImageDlg.h">
       <Filter>include</Filter>
     </ClInclude>
@@ -198,6 +195,12 @@
     <ClInclude Include="..\include\httplib.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\comm\Base64.h">
+      <Filter>comm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\comm\myimagecompress.h">
+      <Filter>comm</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -235,6 +238,9 @@
     </ClCompile>
     <ClCompile Include="WeChatPrinter.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\comm\Base64.cpp">
+      <Filter>comm</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -23,6 +23,7 @@ public:
 // ÷ÿ–¥
 public:
 	virtual BOOL InitInstance();
+	ULONG_PTR m_gdiplusToken;
 
 //  µœ÷
 

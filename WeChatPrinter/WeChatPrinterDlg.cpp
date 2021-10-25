@@ -6,6 +6,7 @@
 #include "mystring.h"
 #include "myos.h"
 #include "mylog.h"
+#include "myimagecompress.h"
 #include "simple_handler.h"
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -19,6 +20,7 @@
 #define TIMER_CHECKINCOMPELEDFILE 1006								//检测未完成的素材
 #define TIMER_CHECKMEMORY	1007									//检测内存
 #define BTN_ADMIN_LOGOUT	2000									
+#define TIMER_OFFLINEREBOT  1008
 
 #define templatezip "template.json"
 #define defaultJson "template/default.json"
@@ -33,6 +35,8 @@ CString g_strRecordCurrentPrograme = "";							//记录选择节目线程的节目
 CString g_strItemid = "";											//手动切换的节目ID
 BOOL bUnderSwitchMode = FALSE;										//处于切换模式，此状态优先级高，高于插播，低于重新下发。
 static int nCheckTimes = 0;											//检测如果两次还没更新掉，就不更新了。
+int g_nZipStatus = 0;												//判断程序运动后素材是否被压缩过了 0 没有压缩 1 压缩中 2 压缩完成
+//static int g_nZipnum = 0;											//单次压缩计数,弃用该字段
 typedef void(__stdcall *_CallBack_Recv)(char* bMsg);
 typedef int(_stdcall *lpRMQ_CALLBACK)(_CallBack_Recv);
 typedef int(_stdcall *lpRMQ_SUB)(const char *, int, const char *, const char *, const char *,
@@ -162,20 +166,20 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	m_hHeartBeat = CreateThread(NULL, 0, HeartBeatThreadProc, this, 0, &dwThreadId);
 
 	// 启动代理
-	ProxyStart_http();
+	//ProxyStart_http();
 	//=================================
 	// 窗口属性设置
 	//=================================
 	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*///是否隐藏鼠标
+	SetWindowText(INFO_PUBLISH_SCREEN_NAME);
 #ifdef DEBUG
 	ShowCursor(TRUE);
 #else
 	ShowCursor(FALSE);
 #endif 
-	SetWindowText(INFO_PUBLISH_SCREEN_NAME);
 	if (g_Config.m_bTopMost)
 	{
-		::SetWindowPos(GetSafeHwnd(), HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);//最前端
+		::SetWindowPos(m_hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);//最前端
 	}
 	m_strHtmlPath = "file:///" + GetFullPath(g_Config.m_strRelatePath + "index.html");
 	m_strHtmlPath.Replace("\\", "/");
@@ -260,51 +264,83 @@ void CWeChatPrinterDlg::OnDestroy()
 	CImageDlg::OnDestroy();
 }
 
-void CWeChatPrinterDlg::ProxyStart_http()
-{
-	// 创建http代理
-	server_httpproxy.Post("/cpp", [&](const Request &req, Response &res, const ContentReader &content_reader) {
-		std::string body;
-		content_reader([&](const char *data, size_t data_length) {
-			body.append(data, data_length);
-			return true;
-		});
-	
-	    std::string replay;
-		ProxyConsume_http(req.path, body, replay);//处理H5的信息
-		//res.set_content(replay.c_str(), "json");//返回给H5
-	});
-	std::thread thread_proxy_http([&]() {
-		bool bRet = server_httpproxy.listen("0.0.0.0", 8866);//监听H5的消息
-	});
-	thread_proxy_http.detach();
-}
+// 
+// void CWeChatPrinterDlg::ProxyStart_http()
+// {
+// 	// 创建http代理
+// 	server_httpproxy.Post("/cpp", [&](const Request &req, Response &res, const ContentReader &content_reader) {
+// 		std::string body;
+// 		content_reader([&](const char *data, size_t data_length) {
+// 			body.append(data, data_length);
+// 			return true;
+// 		});
+// 	
+// 	    std::string replay;
+// 		ProxyConsume_http(req.path, body, replay);//处理H5的信息
+// 		//res.set_content(replay.c_str(), "json");//返回给H5
+// 	});
+// 	//H5可以通过，http://127.0.0.1:8866/public/*.* 的格式访问我static里面的任意素材。
+// 	//如果不加绝对路径的话，在调试模式下，可能会访问不到素材，报404
+// 	server_httpproxy.set_mount_point("/public", get_fullpath("/data/GUI/www/static").c_str());
+// 
+// 	std::thread thread_proxy_http([&]() {
+// 		bool bRet = server_httpproxy.listen("0.0.0.0", 8866);//监听H5的消息
+// 	});
+// 	thread_proxy_http.detach();
+// }
+// 
+// void CWeChatPrinterDlg::ProxyConsume_http(IN std::string path, IN std::string request, OUT std::string & replay)
+// {
+// 	json jrequeset = json::parse(easytoGBK(request).c_str());	
+// 
+// 	if (jrequeset["code"] == "zip")//交易码
+// 	{
+// 		g_nZipStatus = 1;
+// 		//保存压缩后的文件
+// 		std::string strBase64 = jrequeset["image_transformate_base64"].get<std::string>();
+// 		CString strTemp= jrequeset["image_path"].get<std::string>().c_str();
+// 		int pos = strTemp.ReverseFind('/'); 
+// 		CString strName = "www//static//";
+// 		strName += strTemp.Right(strTemp.GetLength() - pos-1);
+// 		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ProxyConsume_http", "%s 待压缩", strName);
+// 		Base64ToPicture(strBase64.c_str(), GetFullPath(g_Config.m_strRelatePath + strName));
+// 		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ProxyConsume_http", "%s 压缩完成", strName);
+// 
+// 		g_nZipnum++;
+// 
+// 		replay = "ziping";
+// 	}
+// 	else if (jrequeset["code"] == "zipok")
+// 	{	
+// 		vector <std::string> vecImages = jrequeset["images"];
+// 		//判断处理的图片数量和本地已经转换好的图片数量计数是否一致，没有的话就循环
+// 		while (vecImages.size() != g_nZipnum)
+// 		{
+// 			if (g_nZipStatus != 1) break;
+// 			Sleep(500);
+// 		}
+// 		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ProxyConsume_http", "压缩完成，启动程序");
+// 
+// 		SetTimer(TIMER_LOADPAGE, 500, NULL);
+// 		g_nZipnum = 0;
+// 		g_nZipStatus = 2;
+// 
+// 		replay = "zipok";
+// 	}
+// }
 
-void CWeChatPrinterDlg::ProxyConsume_http(IN std::string path, IN std::string request, OUT std::string & replay)
+BOOL CWeChatPrinterDlg::ZipImg()
 {
-	json jrequeset = json::parse(easytoGBK(request).c_str());
-	
-	if (jrequeset["code"] == "zip")
-	{
-		//保存压缩后的文件
-		std::string strBase64 = jrequeset["file"].get<std::string>();
-		std::string name = jrequeset["name"];
-		Base64decodePic(strBase64, GetFullPath(g_Config.m_strRelatePath + name.c_str()));
-		//	replay = "ziping";
-	}
-	else if (jrequeset["code"] == "zipok")
-	{
-		SetTimer(TIMER_LOADPAGE, 500, NULL);
-		//	replay = "okokok";
-	}
-}
+	if (g_nZipStatus == 2) return TRUE;
 
-BOOL CWeChatPrinterDlg::PostZipList()
-{
 	bool b1 = is_64bitsystem();
 	float b2 = GetMemory();
-
-	if (b1 || b2 < 4)
+	//不是64位系统或者内存小于4G的话，就压缩图片
+#ifdef ZIPIMGANYWAY
+	if (1)
+#else
+	if (FALSE == b1 || b2 < 4)
+#endif	
 	{
 		vector<CString>vecTemp;
 		vector<CString>vecImg;
@@ -313,19 +349,23 @@ BOOL CWeChatPrinterDlg::PostZipList()
 		{
 			if ((vecTemp[i].Find("jpg")>=0) || (vecTemp[i].Find("png") >= 0))
 			{
-				vecImg.push_back(vecTemp[i]);
+				CString strTemp = vecTemp[i];
+				vecImg.push_back(strTemp);
 			}
 		}
-		json jTemp;
-		jTemp["img"] = vecImg;
 
-		CString strContent = jTemp.dump().c_str();
-		ConvertGBKToUtf8(strContent);
-		CString strInitInterface;
-		strInitInterface.Format(_T("PostZipList('%s');"), strContent);
-		cef_exec_js(strInitInterface.GetBuffer(0));
-		return FALSE;
+		for (unsigned int i = 0; i < vecImg.size(); i++)
+		{
+			CString strBackName ="www/static/backImg";
+			int  nret = compress_image(get_fullpath((g_Config.m_strRelatePath + vecImg[i]).GetBuffer(0)), get_fullpath((g_Config.m_strRelatePath + strBackName).GetBuffer(0)));
+			if (nret)
+			{
+				LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "%s 压缩报错,错误码 %d\n", vecImg[i] , nret);
+			}
+		}
+		g_nZipStatus = 2;
 	}
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "压缩完成 %d,%f\n",b1,b2);
 	return TRUE;
 }
 
@@ -436,7 +476,7 @@ void CWeChatPrinterDlg::cef_exec_js(IN std::string _utf_js, IN int delay)
 
 	CefRefPtr<CefFrame> default_frame = default_browser->GetMainFrame();
 	if (default_frame == NULL) return cef_exec_js(_utf_js, 500);
-
+	if (default_frame->IsValid() == false)return cef_exec_js(_utf_js, 500);
 	if (default_frame->GetURL().empty() == true) return cef_exec_js(_utf_js, 500);
 	default_frame->ExecuteJavaScript(CefString(_utf_js.c_str()), default_frame->GetURL(), 0);
 }
@@ -1127,10 +1167,11 @@ BOOL  FindContent(json jALL, vector<CString> &vecTemp)
 		}
 	}
 
-	//排除掉为空，重复的选项
-	// int ary[] = { 1, 1, 2, 3, 2, 4, 3 };
-	// vector<int> vec(ary, ary + sizeof(ary) / sizeof(int));
-	// deduplication(vec);
+	/*排除掉为空，重复的选项
+		int ary[] = { 1, 1, 2, 3, 2, 4, 3 };
+		vector<int> vec(ary, ary + sizeof(ary) / sizeof(int));
+		deduplication(vec);
+	*/
 	deduplication(vecTemp);
 	return TRUE;
 }
@@ -1547,6 +1588,7 @@ BOOL CWeChatPrinterDlg::RMQ_DealCustomMsg(CString strMsg)
 		if (vct[0].CompareNoCase("PUBLISH") == 0 && vct.size() == 4)
 		{
 			LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "收到更新节目指令");
+			g_nZipStatus = 0;
 			CString strJson = "";
 			m_nMode = 0;
 			if (vct[3] == "ITEMLIST") m_nMode = MULITIPLEPROGRAM;
@@ -1803,6 +1845,7 @@ DWORD CWeChatPrinterDlg::DeviceStatusThreadContent(LPVOID pParam)
 				CString str_Begin = tmBegin.Format("%Y%m%d%H%M%S");
 				LOG2(LOGTYPE_DEBUG, LOG_NAME_OFFLINE, "DeviceStatusThreadContent", "[设备状态上传失败！][%s][%s]", str_Begin, g_toolTrade.GetLastErr());
 			}
+			//SetTimer(TIMER_OFFLINEREBOT, 10 * 60 * 1000, NULL);//害怕有的地方的人，设备一直离线，那它就要一直重启
 		}
 		ResetEvent(m_hDviceStatusEvent);
 	}
@@ -2104,7 +2147,7 @@ void CWeChatPrinterDlg::OnTimer(UINT_PTR nIDEvent)
 		SetEvent(m_hReSignEvent);
 		break;
 	case TIMER_LOADPAGE:
-		if (PostZipList())
+		if (ZipImg())
 		{
 			LoadTemplate();
 		}
@@ -2131,6 +2174,10 @@ void CWeChatPrinterDlg::OnTimer(UINT_PTR nIDEvent)
 	case TIMER_CHECKMEMORY:
 		GetSystemMemoryInfo();
 		SetTimer(TIMER_CHECKMEMORY, 1000 * 120, NULL);
+		break;
+	case  TIMER_OFFLINEREBOT:
+		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnTimer", "\n无法接受RabbitMQ消息，程序即将重启\n");
+		RobotProgamme();
 		break;
 	default:
 		break;
@@ -2296,11 +2343,11 @@ void GetSystemMemoryInfo()
 	CloseHandle(handle);
 
 	//虚拟内存使用率 >85 或者  已使用内存 >1100 MB 就重启程序
-	if (/*percent_memory_virtual >85 ||*/ usedMemory >1100)
-	{
-		LOG2(LOGTYPE_DEBUG, LOG_NAME_MEMORY, "GetSystemMemoryInfo", "\n程序即将重启\n");
-		RobotProgamme();
-	}
+// 	if (/*percent_memory_virtual >85 ||*/ usedMemory >1100)
+// 	{
+// 		LOG2(LOGTYPE_DEBUG, LOG_NAME_MEMORY, "GetSystemMemoryInfo", "\n程序即将重启\n");
+// 		RobotProgamme();
+//	}
 }
 
 void RobotProgamme()

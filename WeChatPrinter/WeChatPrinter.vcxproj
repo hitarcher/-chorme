@@ -51,7 +51,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)bin\</OutDir>
+    <OutDir>../bin/</OutDir>
     <IncludePath>$(SolutionDir)http\;$(SolutionDir)socket\;$(SolutionDir)config\;$(SolutionDir)comm\;$(SolutionDir)json\;$(SolutionDir)include\;$(SolutionDir)cef91;$(SolutionDir)cef;./;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)lib\;..\cef91;C:\OpenSSL-Win32\lib;$(LibraryPath)</LibraryPath>
     <TargetName>InfoPublishScreen</TargetName>
@@ -120,7 +120,9 @@
     <ClInclude Include="..\cef\mycef.h" />
     <ClInclude Include="..\cef\simple_app.h" />
     <ClInclude Include="..\cef\simple_handler.h" />
+    <ClInclude Include="..\comm\Base64.h" />
     <ClInclude Include="..\comm\MakePNG.h" />
+    <ClInclude Include="..\comm\myimagecompress.h" />
     <ClInclude Include="..\comm\tinyzipinterface.h" />
     <ClInclude Include="..\Config\Config.h" />
     <ClInclude Include="..\http\HttpClient.h" />
@@ -135,7 +137,6 @@
     <ClInclude Include="..\include\FileOper.h" />
     <ClInclude Include="..\include\Ftp.h" />
     <ClInclude Include="..\include\httplib.h" />
-    <ClInclude Include="..\include\ImageBase.h" />
     <ClInclude Include="..\include\ImageDlg.h" />
     <ClInclude Include="..\include\InputLanguage.h" />
     <ClInclude Include="..\include\InterfaceReg.h" />
@@ -181,6 +182,7 @@
     <ClCompile Include="..\cef\simple_handler_win.cc">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\comm\Base64.cpp" />
     <ClCompile Include="..\comm\MakePNG.cpp" />
     <ClCompile Include="..\Config\Config.cpp" />
     <ClCompile Include="..\http\HttpClient.cpp" />
