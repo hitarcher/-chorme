@@ -74,6 +74,7 @@ float GetMemory();
 
 BOOL Base64decodePic(std::string  strBase64, CString strFilePath);
 
+void Base64ToPicture(CString sBase64, CString picPath);
 
 int UrlEncodeUtf8_(LPCSTR pszUrl, LPSTR pszEncode, int nEncodeLen);
 

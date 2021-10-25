@@ -1,6 +1,6 @@
 #include <stdafx.h>
 #include "ToolsFunction.h"
-
+#include "Base64.h"
 //3Des加密lib库头文件
 #include "CommunicateInterface.h"
 #ifdef DEBUG                            
@@ -270,17 +270,30 @@ BOOL Base64decodePic(std::string  strBase64, CString strFilePath)
 	{
 		return FALSE;
 	}
-	std::string strData = base64_decode(strBase64);
-	DWORD dwReturn;
-	if (!WriteFile(hFile, strData.data(), strData.length(), &dwReturn, NULL))
+	static CBase64 base64;
+	CString strData = strBase64.c_str();
+	int datalen(0);
+	DWORD dwritelen(0);
+	string strdcode = base64.Decode(strData.GetBuffer(0), strData.GetLength(), datalen);
+	if (!WriteFile(hFile, strdcode.data(), datalen, &dwritelen, NULL))
 	{
 		CloseHandle(hFile);
 		return FALSE;
 	}
+
 	CloseHandle(hFile);
 	return TRUE;
 }	
 
+void Base64ToPicture(CString sBase64, CString picPath)
+{
+
+	std::vector<std::string> vct2 = Splitstring(sBase64.GetBuffer(0), ",");
+	std::string imagebase64 = base64_decode(vct2[1]);
+	// 保存图片
+	easyWriteData(picPath.GetBuffer(0), imagebase64.c_str(), imagebase64.size());
+
+}
 
 BOOL CheckFileExist(CString filepath)
 {
