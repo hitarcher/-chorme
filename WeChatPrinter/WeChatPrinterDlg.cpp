@@ -148,12 +148,15 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	}
 #endif
 	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*///加载基本配置
+	LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "OnInitDialog", "准备开始加载参数");
+
 	if (FALSE == g_Config.LoadBaseCfg())
 	{
 		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "OnInitDialog", "[g_Config.LoadBaseCfg()][%s]", g_Config.GetLastErr());
 		goto EXIT;
 	}
 	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*///加载动态库
+	LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "OnInitDialog", "准备开始加载动态库");
 	if (FALSE == LoadRMQPubAndRMQSUBDLL())
 	{
 		goto EXIT;
@@ -164,6 +167,15 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	m_hDviceStatus = CreateThread(NULL, 0, DeviceStatusThreadProc, this, 0, &dwThreadId);
 	m_hChooseProgram = CreateThread(NULL, 0, ChooseProgramThreadProc, this, 0, &dwThreadId);
 	m_hHeartBeat = CreateThread(NULL, 0, HeartBeatThreadProc, this, 0, &dwThreadId);
+	if (m_hReSign && m_hRMQ && m_hDviceStatus && m_hChooseProgram)
+	{
+		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "OnInitDialog", "线程创建成功");
+	}
+	else
+	{
+		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "OnInitDialog", "线程创建失败");
+		goto EXIT;
+	}
 
 	// 启动代理
 	//ProxyStart_http();
@@ -177,10 +189,13 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 #else
 	ShowCursor(FALSE);
 #endif 
-	if (g_Config.m_bTopMost)
-	{
-		::SetWindowPos(m_hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);//最前端
-	}
+	//可能会导致程序无法启动
+// 	if (g_Config.m_bTopMost)
+// 	{
+// 		//::SetWindowPos(m_hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);//最前端
+// 		SetForegroundWindow();
+// 	}
+
 	m_strHtmlPath = "file:///" + GetFullPath(g_Config.m_strRelatePath + "index.html");
 	m_strHtmlPath.Replace("\\", "/");
 	ConvertGBKToUtf8(m_strHtmlPath);
@@ -193,7 +208,7 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 		goto EXIT;
 	}
 	SetTimer(TIMER_CHOOSEPROGAME,10, NULL);
-	SetTimer(TIMER_RESIGN, 10, NULL);
+	SetTimer(TIMER_RESIGN, 100, NULL);
 	SetTimer(TIMER_CHECKINCOMPELEDFILE, 3000, NULL);
 	SetTimer(TIMER_CHECKMEMORY, 5000, NULL);
 	//隔30天删除一次没有归属的素材
@@ -201,6 +216,7 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "界面初始化成功");
 	return TRUE;
 EXIT:
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "程序异常退出");
 	EndDialog(FALSE);
 	return FALSE;
 }
@@ -331,10 +347,16 @@ void CWeChatPrinterDlg::OnDestroy()
 
 BOOL CWeChatPrinterDlg::ZipImg()
 {
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ZipImg", "开始压缩素材");
+
 	if (g_nZipStatus == 2) return TRUE;
 
 	bool b1 = is_64bitsystem();
 	float b2 = GetMemory();
+	vector<CString>vecTemp;
+	vector<CString>vecImg;
+	unsigned int nSumImg = 0;
+	unsigned int nSumFailed = 0;
 	//不是64位系统或者内存小于4G的话，就压缩图片
 #ifdef ZIPIMGANYWAY
 	if (1)
@@ -342,8 +364,7 @@ BOOL CWeChatPrinterDlg::ZipImg()
 	if (FALSE == b1 || b2 < 4)
 #endif	
 	{
-		vector<CString>vecTemp;
-		vector<CString>vecImg;
+
 		FindContent(jTemplate, vecTemp);
 		for (unsigned int i = 0; i < vecTemp.size(); i++)
 		{
@@ -360,12 +381,14 @@ BOOL CWeChatPrinterDlg::ZipImg()
 			int  nret = compress_image(get_fullpath((g_Config.m_strRelatePath + vecImg[i]).GetBuffer(0)), get_fullpath((g_Config.m_strRelatePath + strBackName).GetBuffer(0)));
 			if (nret)
 			{
+				nSumFailed++;
 				LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "%s 压缩报错,错误码 %d\n", vecImg[i] , nret);
 			}
 		}
+		nSumImg = vecImg.size();
 		g_nZipStatus = 2;
 	}
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "压缩完成 ,系统为%d,内存大小为%fGB\n",b1?64:32,b2);
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "压缩完成 ,系统为%d位,内存大小为%4.2fGB,成功数量%d张，失败数量%d张。\n",b1?64:32,b2, nSumImg- nSumFailed, nSumFailed);
 	return TRUE;
 }
 
@@ -388,6 +411,8 @@ void CWeChatPrinterDlg::LoadTemplate()
 
 void CWeChatPrinterDlg::cef_init()
 {
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "准备cef 初始化，路径为%s", m_strHtmlPath);
+
 	// Enable High-DPI support on Windows 7 or newer.
 	CefEnableHighDPISupport();
 
@@ -424,7 +449,6 @@ void CWeChatPrinterDlg::cef_init()
 	//********************************************************************************
 	//实在想不起来，自适应会有什么问题，不过大部分都按照配的分辨率来的话，这个先不放开了。
 	SetWindowPos(NULL, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), SWP_DRAWFRAME);
-
 	//********************************************************************************
 
 	CRect rect; GetWindowRect(&rect);
@@ -436,6 +460,7 @@ void CWeChatPrinterDlg::cef_init()
 			, rect
 		);
 	CefInitialize(main_args, settings, m_cef_app.get(), sandbox_info);
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "cef 初始化成功过");
 
 }
 
@@ -592,6 +617,7 @@ BOOL CWeChatPrinterDlg::LoadOfflinePacket()
 	}
 	else
 	{
+		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "LoadOfflineJson", "本地没有离线节目压缩包");
 		return FALSE;
 	}
 
@@ -608,6 +634,8 @@ BOOL CWeChatPrinterDlg::LoadOfflinePacket()
 	}
 	else// 解压成功
 	{
+		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "LoadOfflinePacket", "开始解压离线节目压缩包");
+
 		json jOffline = LoadjsonFile(strResourcePath + templatezip);
 		if (jOffline == "")
 		{
@@ -650,6 +678,8 @@ BOOL CWeChatPrinterDlg::LoadOfflinePacket()
 //选择加载的节目，包含离线压缩包解压，选择紧急插播节目或者是普通节目
 BOOL CWeChatPrinterDlg::ChooseJson()
 {
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseJson", "开始选择节目");
+
 	jDefault = LoadjsonFile(defaultJson);
 	if ("" == jDefault)
 	{
@@ -659,12 +689,13 @@ BOOL CWeChatPrinterDlg::ChooseJson()
 	jTemplate = LoadjsonFile(g_Config.m_strTempalteJson);
 	if ("" == jTemplate)
 	{
-		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "ChooseJson", "jTemplate 内容为空");
+		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "ChooseJson", "jTemplate 内容为空,修改为默认节目");
 		//没有template.json 就播放default.json
 		ChangeCurrentJson(jDefault);
 	}
 	else
 	{
+		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "ChooseJson", "修改为jTemplate");
 		ChangeCurrentJson(jTemplate);
 	}
 	jOverdue = LoadjsonFile(g_Config.m_strOldTemplate);
@@ -674,9 +705,10 @@ BOOL CWeChatPrinterDlg::ChooseJson()
 	//判断有无紧急插播节目且是否合规，没有就加载原节目
 	if (LoadTemporayJson())
 	{
+		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "ChooseJson", "修改为jTemproary，紧急插播");
 		ChangeCurrentJson(jTemproary);
 	}
-
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseJson", "加载节目成功");
 	return TRUE;
 }
 
@@ -1484,6 +1516,8 @@ BOOL CWeChatPrinterDlg::CheckUpdate()
 //删除旧的素材
 void CWeChatPrinterDlg::DelateResource()
 {
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "DelateResource", "开始删除旧素材");
+
 	CString strOldTemplatePath = GetFullPath(g_Config.m_strRelatePath + g_Config.m_strTemporaryJson);
 	if (jTemproary != "")
 	{
@@ -1498,6 +1532,7 @@ void CWeChatPrinterDlg::DelateResource()
 			CheckOldResource(vecJson);
 		}
 	}
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "DelateResource", "删除旧素材完成");
 }
 
 //睡眠函数1，倒计时进入休眠
@@ -1867,6 +1902,7 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 		if (TRUE == m_bExit) return TRUE;
 		if (dwResult == WAIT_OBJECT_0)
 		{
+			LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "开始选择节目");
 			BOOL bInTimeArea = FALSE;													//是否在播放时间区域内
 			CString strCurDate = GetCurTime(DATE_NORMAL).c_str();						//YYYYMMDDHHMMSS, atoi()有效长度为10
 			int iCloseRemainingTime = 0;												//距离关闭所剩余时间
