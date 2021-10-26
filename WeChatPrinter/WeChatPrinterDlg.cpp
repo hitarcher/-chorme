@@ -129,6 +129,20 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "==============START==============", "");
 	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*///删除超过30天的日志
 	LOG_CLEAR(30);
+	//cef_log.log 可能会异常过大，这边每次启动会检查并删除
+	ULONGLONG size;
+	CString strCEFLOGPath = get_fullpath("cef_catch//cef_log.log").c_str();
+	CFileStatus fileStatus;
+	if (CFile::GetStatus(strCEFLOGPath, fileStatus))
+	{
+		size = fileStatus.m_size/1024/1024;
+		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "OnInitDialog", "cef_log.log size = %lld MB", size);
+		if (size >500)
+		{
+			DeleteFile(strCEFLOGPath);
+		}
+	}
+
 	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/// 设置全局钩子，用来键入管理界面，以免被其他控件遮挡
 #ifdef STARTHOOK
 	hMouseHook = SetWindowsHookEx(WH_MOUSE_LL, OnMouseEvent, theApp.m_hInstance, 0);
