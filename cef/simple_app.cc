@@ -144,6 +144,11 @@ void SimpleApp::OnBeforeCommandLineProcessing(
 	command_line->AppendSwitchWithValue("--memory-pressure-thresholds-mb", "50");
 	// crash报告
 	command_line->AppendSwitchWithValue("--full-memory-crash-report", "1");
+	//禁用硬件解码
+	command_line->AppendSwitchWithValue("--disable-accelerated-video-decode", "1");
+	//禁用GPU加速
+	command_line->AppendSwitchWithValue("--disable-gpu", "1");
+
 }
 
 
