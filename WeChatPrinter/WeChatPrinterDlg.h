@@ -135,7 +135,7 @@ private:
 	CString m_strDeviceType;									    //签到后设备类型
 																    
 	CefRefPtr<SimpleApp> m_cef_app;								    
-	void cef_init();											    
+	int cef_init();
 	void cef_close();											    
 	void cef_load_url(IN std::string _utf_url, IN int delay=0);
 	void cef_exec_js(IN std::string _utf_js, IN int delay = 0); 

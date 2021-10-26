@@ -155,6 +155,8 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "OnInitDialog", "[g_Config.LoadBaseCfg()][%s]", g_Config.GetLastErr());
 		goto EXIT;
 	}
+	LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "OnInitDialog", "加载参数成功");
+
 	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*///加载动态库
 	LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "OnInitDialog", "准备开始加载动态库");
 	if (FALSE == LoadRMQPubAndRMQSUBDLL())
@@ -198,9 +200,13 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 
 	m_strHtmlPath = "file:///" + GetFullPath(g_Config.m_strRelatePath + "index.html");
 	m_strHtmlPath.Replace("\\", "/");
+
 	ConvertGBKToUtf8(m_strHtmlPath);
 	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*///cef3初始化
-	cef_init();
+	if (FALSE == cef_init())
+	{
+		goto EXIT;
+	}
 	
 	//选择加载的节目json，包含离线压缩包解压，选择紧急插播节目或者是普通节目
 	if (FALSE == ChooseJson())
@@ -364,6 +370,7 @@ BOOL CWeChatPrinterDlg::ZipImg()
 	if (FALSE == b1 || b2 < 4)
 #endif	
 	{
+		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ZipImg", "压缩中请稍后");
 
 		FindContent(jTemplate, vecTemp);
 		for (unsigned int i = 0; i < vecTemp.size(); i++)
@@ -374,6 +381,7 @@ BOOL CWeChatPrinterDlg::ZipImg()
 				vecImg.push_back(strTemp);
 			}
 		}
+		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ZipImg", "共计%d张图片，压缩中请稍后", vecImg.size());
 
 		for (unsigned int i = 0; i < vecImg.size(); i++)
 		{
@@ -382,13 +390,13 @@ BOOL CWeChatPrinterDlg::ZipImg()
 			if (nret)
 			{
 				nSumFailed++;
-				LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "%s 压缩报错,错误码 %d\n", vecImg[i] , nret);
+				LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ZipImg", "%s 压缩报错,错误码 %d", vecImg[i] , nret);
 			}
 		}
 		nSumImg = vecImg.size();
 		g_nZipStatus = 2;
 	}
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "压缩完成 ,系统为%d位,内存大小为%4.2fGB,成功数量%d张，失败数量%d张。\n",b1?64:32,b2, nSumImg- nSumFailed, nSumFailed);
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ZipImg", "压缩完成 ,系统为%d位,内存大小为%4.2fGB,成功数量%d张，失败数量%d张。\n",b1 ? 64 : 32,b2, nSumImg- nSumFailed, nSumFailed);
 	return TRUE;
 }
 
@@ -409,9 +417,11 @@ void CWeChatPrinterDlg::LoadTemplate()
 
 }
 
-void CWeChatPrinterDlg::cef_init()
+int CWeChatPrinterDlg::cef_init()
 {
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "准备cef 初始化，路径为%s", m_strHtmlPath);
+	CString strTemp = m_strHtmlPath;
+	ConvertUtf8ToGBK(strTemp);
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "准备cef 初始化，路径为%s", strTemp);
 
 	// Enable High-DPI support on Windows 7 or newer.
 	CefEnableHighDPISupport();
@@ -426,7 +436,8 @@ void CWeChatPrinterDlg::cef_init()
 	CefMainArgs main_args(theApp.m_hInstance);
 	int exit_code = CefExecuteProcess(main_args, nullptr, sandbox_info);
 	if (exit_code >= 0) {
-		return;
+		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "CefExecuteProcess error_code = %d", exit_code);
+		return FALSE;
 	}
 	CefRefPtr<CefCommandLine> command_line = CefCommandLine::CreateCommandLine();
 	command_line->InitFromString(::GetCommandLineW());
@@ -437,6 +448,7 @@ void CWeChatPrinterDlg::cef_init()
 
 	settings.remote_debugging_port = 33220;
 	settings.multi_threaded_message_loop = true;
+	settings.log_severity = LOGSEVERITY_ERROR;
 	CefString(&settings.cache_path) = easytoUTF(get_fullpath("cef_catch"));
 	CefString(&settings.log_file) = easytoUTF(get_fullpath("cef_catch//cef_log.log"));
 	CefString(&settings.framework_dir_path) = easytoUTF(get_fullpath(""));
@@ -448,10 +460,14 @@ void CWeChatPrinterDlg::cef_init()
 #endif
 	//********************************************************************************
 	//实在想不起来，自适应会有什么问题，不过大部分都按照配的分辨率来的话，这个先不放开了。
-	SetWindowPos(NULL, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), SWP_DRAWFRAME);
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "设置全屏");
+	SetWindowPos(NULL, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), SWP_SHOWWINDOW);
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "设置全屏2");
 	//********************************************************************************
 
-	CRect rect; GetWindowRect(&rect);
+	CRect rect;
+	GetWindowRect(&rect);
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "new SimpleApp");
 	m_cef_app =
 		new SimpleApp(
 			m_strHtmlPath.GetBuffer(0)
@@ -459,9 +475,20 @@ void CWeChatPrinterDlg::cef_init()
 			, m_hWnd
 			, rect
 		);
-	CefInitialize(main_args, settings, m_cef_app.get(), sandbox_info);
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "cef 初始化成功过");
-
+	if (m_cef_app == NULL)
+	{
+		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "new SimpleApp Error");
+		return FALSE;
+	}
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "new SimpleApp OK");
+	bool bret = CefInitialize(main_args, settings, m_cef_app.get(), sandbox_info);
+	if (FALSE  == bret)
+	{
+		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "cef 初始化失败");
+		return FALSE;
+	}
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "cef 初始化成功");
+	return TRUE;
 }
 
 void CWeChatPrinterDlg::cef_close()
