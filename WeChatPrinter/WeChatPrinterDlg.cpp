@@ -36,7 +36,8 @@ CString g_strItemid = "";											//手动切换的节目ID
 BOOL bUnderSwitchMode = FALSE;										//处于切换模式，此状态优先级高，高于插播，低于重新下发。
 static int nCheckTimes = 0;											//检测如果两次还没更新掉，就不更新了。
 int g_nZipStatus = 0;												//判断程序运动后素材是否被压缩过了 0 没有压缩 1 压缩中 2 压缩完成
-//static int g_nZipnum = 0;											//单次压缩计数,弃用该字段
+static int g_nZipnum = 0;											//单次压缩计数,弃用该字段
+BOOL g_bH5IsReady = FALSE;
 typedef void(__stdcall *_CallBack_Recv)(char* bMsg);
 typedef int(_stdcall *lpRMQ_CALLBACK)(_CallBack_Recv);
 typedef int(_stdcall *lpRMQ_SUB)(const char *, int, const char *, const char *, const char *,
@@ -136,9 +137,10 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	if (CFile::GetStatus(strCEFLOGPath, fileStatus))
 	{
 		size = fileStatus.m_size/1024/1024;
-		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "OnInitDialog", "cef_log.log size = %lld MB", size);
+		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "cef_log.log size = %lld MB", size);
 		if (size >500)
 		{
+			LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "删除cef_log.log");
 			DeleteFile(strCEFLOGPath);
 		}
 	}
@@ -151,7 +153,7 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	if (CheckFileExist(GetFullPath("update.bat")))
 	{
 		StartProcess3(GetFullPath("update.bat")); 
-		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "OnInitDialog", "执行更新程序，替换文件");
+		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "执行更新程序，替换文件");
 		goto EXIT;
 	}
 #ifdef CHECKUPDATE
@@ -162,17 +164,17 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	}
 #endif
 	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*///加载基本配置
-	LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "OnInitDialog", "准备开始加载参数");
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "准备开始加载参数");
 
 	if (FALSE == g_Config.LoadBaseCfg())
 	{
 		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "OnInitDialog", "[g_Config.LoadBaseCfg()][%s]", g_Config.GetLastErr());
 		goto EXIT;
 	}
-	LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "OnInitDialog", "加载参数成功");
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "加载参数成功");
 
 	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*///加载动态库
-	LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "OnInitDialog", "准备开始加载动态库");
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "准备开始加载动态库");
 	if (FALSE == LoadRMQPubAndRMQSUBDLL())
 	{
 		goto EXIT;
@@ -185,7 +187,7 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	m_hHeartBeat = CreateThread(NULL, 0, HeartBeatThreadProc, this, 0, &dwThreadId);
 	if (m_hReSign && m_hRMQ && m_hDviceStatus && m_hChooseProgram)
 	{
-		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "OnInitDialog", "线程创建成功");
+		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "线程创建成功");
 	}
 	else
 	{
@@ -211,10 +213,9 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 // 		//::SetWindowPos(m_hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);//最前端
 // 		SetForegroundWindow();
 // 	}
-
+	ProxyStart_http();
 	m_strHtmlPath = "file:///" + GetFullPath(g_Config.m_strRelatePath + "index.html");
 	m_strHtmlPath.Replace("\\", "/");
-
 	ConvertGBKToUtf8(m_strHtmlPath);
 	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*///cef3初始化
 	if (FALSE == cef_init())
@@ -300,70 +301,94 @@ void CWeChatPrinterDlg::OnDestroy()
 	CImageDlg::OnDestroy();
 }
 
-// 
-// void CWeChatPrinterDlg::ProxyStart_http()
-// {
-// 	// 创建http代理
-// 	server_httpproxy.Post("/cpp", [&](const Request &req, Response &res, const ContentReader &content_reader) {
-// 		std::string body;
-// 		content_reader([&](const char *data, size_t data_length) {
-// 			body.append(data, data_length);
-// 			return true;
-// 		});
-// 	
-// 	    std::string replay;
-// 		ProxyConsume_http(req.path, body, replay);//处理H5的信息
-// 		//res.set_content(replay.c_str(), "json");//返回给H5
-// 	});
-// 	//H5可以通过，http://127.0.0.1:8866/public/*.* 的格式访问我static里面的任意素材。
-// 	//如果不加绝对路径的话，在调试模式下，可能会访问不到素材，报404
-// 	server_httpproxy.set_mount_point("/public", get_fullpath("/data/GUI/www/static").c_str());
-// 
-// 	std::thread thread_proxy_http([&]() {
-// 		bool bRet = server_httpproxy.listen("0.0.0.0", 8866);//监听H5的消息
-// 	});
-// 	thread_proxy_http.detach();
-// }
-// 
-// void CWeChatPrinterDlg::ProxyConsume_http(IN std::string path, IN std::string request, OUT std::string & replay)
-// {
-// 	json jrequeset = json::parse(easytoGBK(request).c_str());	
-// 
-// 	if (jrequeset["code"] == "zip")//交易码
-// 	{
-// 		g_nZipStatus = 1;
-// 		//保存压缩后的文件
-// 		std::string strBase64 = jrequeset["image_transformate_base64"].get<std::string>();
-// 		CString strTemp= jrequeset["image_path"].get<std::string>().c_str();
-// 		int pos = strTemp.ReverseFind('/'); 
-// 		CString strName = "www//static//";
-// 		strName += strTemp.Right(strTemp.GetLength() - pos-1);
-// 		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ProxyConsume_http", "%s 待压缩", strName);
-// 		Base64ToPicture(strBase64.c_str(), GetFullPath(g_Config.m_strRelatePath + strName));
-// 		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ProxyConsume_http", "%s 压缩完成", strName);
-// 
-// 		g_nZipnum++;
-// 
-// 		replay = "ziping";
-// 	}
-// 	else if (jrequeset["code"] == "zipok")
-// 	{	
-// 		vector <std::string> vecImages = jrequeset["images"];
-// 		//判断处理的图片数量和本地已经转换好的图片数量计数是否一致，没有的话就循环
-// 		while (vecImages.size() != g_nZipnum)
-// 		{
-// 			if (g_nZipStatus != 1) break;
-// 			Sleep(500);
-// 		}
-// 		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ProxyConsume_http", "压缩完成，启动程序");
-// 
-// 		SetTimer(TIMER_LOADPAGE, DELAY_TIME*1000, NULL);
-// 		g_nZipnum = 0;
-// 		g_nZipStatus = 2;
-// 
-// 		replay = "zipok";
-// 	}
-// }
+ 
+ void CWeChatPrinterDlg::ProxyStart_http()
+ {
+	 LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ProxyStart_http", "创建HTTP服务");
+
+ 	// 创建http代理
+ 	server_httpproxy.Post("/cpp", [&](const Request &req, Response &res, const ContentReader &content_reader) {
+ 		std::string body;
+ 		content_reader([&](const char *data, size_t data_length) {
+ 			body.append(data, data_length);
+ 			return true;
+ 		});
+		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ProxyStart_http", "接收到 HTTP通知 body=%s", body.c_str());
+ 	    std::string replay;
+ 		ProxyConsume_http(req.path, body, replay);//处理H5的信息
+ 		//res.set_content(replay.c_str(), "json");//返回给H5
+ 	});
+ 	//H5可以通过，http://127.0.0.1:8866/public/*.* 的格式访问我static里面的任意素材。
+ 	//如果不加绝对路径的话，在调试模式下，可能会访问不到素材，报404
+ 	server_httpproxy.set_mount_point("/public", get_fullpath("/data/GUI/www/static").c_str());
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ProxyStart_http", "ProxyStart_http 1 ");
+ 	std::thread thread_proxy_http([&]() {
+ 		bool bRet = server_httpproxy.listen("0.0.0.0", 8866);//监听H5的消息
+		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ProxyStart_http", "开启HTTP监听");
+ 	});
+ 	thread_proxy_http.detach();
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ProxyStart_http", "ProxyStart_http end ");
+
+ }
+ 
+ void CWeChatPrinterDlg::ProxyConsume_http(IN std::string path, IN std::string request, OUT std::string & replay)
+ {
+	 if (request == "")
+	 {
+		 LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "ParseNewTemplateOfH5", "request[内容为空]");
+		 return ;
+	 }
+ 	json jrequeset = json::parse(easytoGBK(request).c_str());	
+ 
+ 	if (jrequeset["code"] == "zip")//交易码
+ 	{
+		return;
+
+ 		g_nZipStatus = 1;
+ 		//保存压缩后的文件
+ 		std::string strBase64 = jrequeset["image_transformate_base64"].get<std::string>();
+ 		CString strTemp= jrequeset["image_path"].get<std::string>().c_str();
+ 		int pos = strTemp.ReverseFind('/'); 
+ 		CString strName = "www//static//";
+ 		strName += strTemp.Right(strTemp.GetLength() - pos-1);
+ 		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ProxyConsume_http", "%s 待压缩", strName);
+ 		Base64ToPicture(strBase64.c_str(), GetFullPath(g_Config.m_strRelatePath + strName));
+ 		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ProxyConsume_http", "%s 压缩完成", strName);
+ 
+ 		g_nZipnum++;
+ 
+ 		replay = "ziping";
+ 	}
+ 	else if (jrequeset["code"] == "zipok")
+ 	{	
+		return;
+ 		vector <std::string> vecImages = jrequeset["images"];
+ 		//判断处理的图片数量和本地已经转换好的图片数量计数是否一致，没有的话就循环
+ 		while (vecImages.size() != g_nZipnum)
+ 		{
+ 			if (g_nZipStatus != 1) break;
+ 			Sleep(500);
+ 		}
+ 		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ProxyConsume_http", "压缩完成，启动程序");
+ 
+ 		SetTimer(TIMER_LOADPAGE, DELAY_TIME*1000, NULL);
+ 		g_nZipnum = 0;
+ 		g_nZipStatus = 2;
+ 
+ 		replay = "zipok";
+ 	}
+	else if (jrequeset["code"] == "H5OK")
+	{
+		//replay = "success";
+
+		CString strInitInterface;
+		strInitInterface.Format(_T("GetH5OK();"));
+		cef_exec_js(strInitInterface.GetBuffer(0));
+
+		g_bH5IsReady = TRUE;
+		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ProxyConsume_http", "H5加载完毕");
+	}
+ }
 
 BOOL CWeChatPrinterDlg::ZipImg()
 {
@@ -416,6 +441,18 @@ BOOL CWeChatPrinterDlg::ZipImg()
 
 void CWeChatPrinterDlg::LoadTemplate()
 {
+	int i = 0;
+	while (FALSE == g_bH5IsReady)
+	{
+		Sleep(1000);
+		i++;
+		if (i == 30)
+		{
+			LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "LoadTemplate", "累计%d秒未收到HTTP通知，强制加载模板", i);
+			break;
+		}
+	}
+
 	std::string strTemp = jForIE.dump();
 	CString strContent = strTemp.c_str();
 	ConvertGBKToUtf8(strContent);
@@ -460,8 +497,8 @@ int CWeChatPrinterDlg::cef_init()
 		settings.chrome_runtime = true;
 	}
 
-	settings.remote_debugging_port = 33220;
-	settings.multi_threaded_message_loop = true;
+	settings.remote_debugging_port = 33220;//设置远程调试端口，可以在浏览器里打开调试窗口，比较方便
+	settings.multi_threaded_message_loop = true;//这个选项会影响到消息循环的模式，仔细选择
 	settings.log_severity = LOGSEVERITY_ERROR;
 	CefString(&settings.cache_path) = easytoUTF(get_fullpath("cef_catch"));
 	CefString(&settings.log_file) = easytoUTF(get_fullpath("cef_catch//cef_log.log"));
@@ -582,6 +619,11 @@ json LoadjsonFile(CString strJsonName)
 		char* pTemplate = (char*)calloc((int)status.m_size + 1, sizeof(char));
 		file.Read(pTemplate, (int)status.m_size);
 		CString strJson = pTemplate;
+		if (strJson == "")
+		{
+			LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "LoadjsonFile", "[LoadjsonFile][内容为空]");
+			return jTemp;
+		}
 		ConvertUtf8ToGBK(strJson);
 		jTemp = json::parse(strJson.GetBuffer(0));
 		strJson.ReleaseBuffer();
@@ -757,6 +799,11 @@ BOOL CWeChatPrinterDlg::ChooseJson()
 BOOL CWeChatPrinterDlg::ParseNewTemplateOfH5(CString strJson, BOOL bIsSingleProgram,/* BOOL bIsOffline,*/ BOOL bParseOnly)
 {
 	// 解析json
+	if (strJson == "")
+	{
+		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "ParseNewTemplateOfH5", "strJson[内容为空]");
+		return FALSE;
+	}
 	json jALL = json::parse(strJson.GetBuffer(0));
 	strJson.ReleaseBuffer();
 	json j = jALL["body"]["data"];

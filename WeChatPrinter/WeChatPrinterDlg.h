@@ -214,10 +214,10 @@ private:
 	BOOL ZipImg();
 
 	// 启动代理
-// 	void ProxyStart_http();
-// 	//  http
-// 	httplib::Server server_httpproxy;
-// 	void ProxyConsume_http(IN std::string path, IN std::string request, OUT std::string & replay);
+ 	void ProxyStart_http();
+ 	//  http
+ 	httplib::Server server_httpproxy;
+ 	void ProxyConsume_http(IN std::string path, IN std::string request, OUT std::string & replay);
 
 public:
 	// 窗口大小
