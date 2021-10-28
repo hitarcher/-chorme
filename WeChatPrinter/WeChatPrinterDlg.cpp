@@ -150,12 +150,38 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	hMouseHook = SetWindowsHookEx(WH_MOUSE_LL, OnMouseEvent, theApp.m_hInstance, 0);
 #endif
 	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/// 用于更新 自动更新程序
-	if (CheckFileExist(GetFullPath("update.bat")))
+	//存在问题，批处理总是执行失败，无法将atuoUpdate.exe 迁移过去，导致程序崩溃。
+// 	if (CheckFileExist(GetFullPath("update.bat")))
+// 	{
+// 		StartProcess3(GetFullPath("update.bat")); 
+// 		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "执行更新程序，替换文件");
+// 		goto EXIT;
+// 	}
+
+	CString strUpdateFile = GetFullPath("AutoUpdate.exe");
+	if (CheckFileExist(strUpdateFile))
 	{
-		StartProcess3(GetFullPath("update.bat")); 
-		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "执行更新程序，替换文件");
-		goto EXIT;
+		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "检测到存在 %s", strUpdateFile);
+		Sleep(2000);
+		int iProcessID = FindProcess("AutoUpdate.exe");
+		while (iProcessID > 0)
+		{
+			KillProcess(iProcessID);
+			LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "检测到AutoUpdate.exe存在，强制关闭 %s", strUpdateFile);
+			Sleep(500);
+		}
+		bool b1, b2, b3, b4;
+		b1 = mv(strUpdateFile, GetFullPath(AutoUpdateEXE));
+		b2 = mv(GetFullPath("SoftAuthorization.dll"), GetFullPath("自动更新\\SoftAuthorization.dll"));
+		b3 = mv(GetFullPath("2.jpg"), GetFullPath("2.jpg"));
+		b4 = mv(GetFullPath("测试授权.exe"), GetFullPath("测试授权.exe"));
+		if (FALSE == b1)
+		{
+			LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "AutoUpdate拷贝失败，%s,%s,%d,%d,%d", strUpdateFile, GetFullPath(AutoUpdateEXE),b2,b3,b4);
+			goto EXIT;
+		}
 	}
+
 #ifdef CHECKUPDATE
 	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*///是否启动自动更新检测
 	if (FALSE == CheckUpdate())

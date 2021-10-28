@@ -44,8 +44,10 @@
 
 #define INFO_PUBLISH_SCREEN_NAME "INFO_PUBLISH_SCREEN"
 
-//Release用
-#define TESTMODE
+
+//#define TESTMODE
+
+
 
 #ifdef TESTMODE
 // #define CHECKUPDATE		//启动自动更新
@@ -59,11 +61,7 @@
 
 #endif
 
-//#define STARTHOOK			//启动钩子
-
-
-
-//DEBUG用 
+//#define STARTHOOK				//启动钩子
 //#define  DETAIlEDLOG			//启用详细日志  
 //#define  CLOSESCRECT			//关闭加密
 //#define  DOWNLOAD_NO			//关闭下载
