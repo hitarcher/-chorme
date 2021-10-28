@@ -452,8 +452,12 @@ void CWeChatPrinterDlg::LoadTemplate()
 			break;
 		}
 	}
-
 	std::string strTemp = jForIE.dump();
+	if (strTemp == "")
+	{
+		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "LoadTemplate", "jForIE[内容为空]");
+		return ;
+	}
 	CString strContent = strTemp.c_str();
 	ConvertGBKToUtf8(strContent);
 	CString strInitInterface;
@@ -621,7 +625,7 @@ json LoadjsonFile(CString strJsonName)
 		CString strJson = pTemplate;
 		if (strJson == "")
 		{
-			LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "LoadjsonFile", "[LoadjsonFile][内容为空]");
+			LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "LoadjsonFile", "[%s][内容为空]", strJsonName);
 			return jTemp;
 		}
 		ConvertUtf8ToGBK(strJson);

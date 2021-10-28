@@ -45,11 +45,23 @@
 #define INFO_PUBLISH_SCREEN_NAME "INFO_PUBLISH_SCREEN"
 
 //Release用
-//#define CHECKUPDATE		//启动自动更新
+//#define TESTMODE
+
+#ifdef TESTMODE
+// #define CHECKUPDATE		//启动自动更新
 #define	ZIPIMGANYWAY	//无视系统内存，直接压缩图片素材
 #define	DELAY_TIME 1	//延迟启动时间
+
+#else 
+#define CHECKUPDATE		//启动自动更新
+#define	DELAY_TIME 15	//延迟启动时间
 #define	AVOIDREPEATRUN	//避免重复运行
+
+#endif
+
 //#define STARTHOOK			//启动钩子
+
+
 
 //DEBUG用 
 //#define  DETAIlEDLOG			//启用详细日志  
