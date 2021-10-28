@@ -599,7 +599,7 @@ json LoadjsonFile(CString strJsonName)
 	json jTemp = "";
 	if (FALSE == CheckFileExist(strConfigFile))
 	{
-		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "LoadjsonFile", "[LoadjsonFile][%s]文件不存在", strConfigFile);
+		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "LoadjsonFile", "[LoadjsonFile][%s]文件不存在", strConfigFile);
 		return jTemp;
 	}
 	//1 先判断文件是否存在
@@ -774,18 +774,27 @@ BOOL CWeChatPrinterDlg::ChooseJson()
 		return FALSE;
 	}
 	jTemplate = LoadjsonFile(g_Config.m_strTempalteJson);
+	jOverdue = LoadjsonFile(g_Config.m_strOldTemplate);
 	if ("" == jTemplate)
 	{
-		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "ChooseJson", "jTemplate 内容为空,修改为默认节目");
-		//没有template.json 就播放default.json
-		ChangeCurrentJson(jDefault);
+		if ("" != jOverdue)
+		{
+			//没有template.json 就播放templateold.json
+			ChangeCurrentJson(jOverdue);
+			LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "ChooseJson", "jTemplate 内容为空,修改为旧节目");
+		}
+		else
+		{	
+			//没有templateold.json 就播放default.json
+			ChangeCurrentJson(jDefault);
+			LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "ChooseJson", "jOverdue 内容为空,修改为默认节目");
+		}
 	}
 	else
 	{
 		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "ChooseJson", "修改为jTemplate");
 		ChangeCurrentJson(jTemplate);
 	}
-	jOverdue = LoadjsonFile(g_Config.m_strOldTemplate);
 
 	//判断有无离线节目压缩包
 	LoadOfflinePacket();

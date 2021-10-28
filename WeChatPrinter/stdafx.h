@@ -45,7 +45,7 @@
 #define INFO_PUBLISH_SCREEN_NAME "INFO_PUBLISH_SCREEN"
 
 //Release用
-//#define TESTMODE
+#define TESTMODE
 
 #ifdef TESTMODE
 // #define CHECKUPDATE		//启动自动更新
