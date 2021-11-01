@@ -174,8 +174,8 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 		bool b1, b2, b3, b4;
 		b1 = mv(strUpdateFile, GetFullPath(AutoUpdateEXE));
 		b2 = mv(GetFullPath("SoftAuthorization.dll"), GetFullPath("自动更新\\SoftAuthorization.dll"));
-		b3 = mv(GetFullPath("2.jpg"), GetFullPath("2.jpg"));
-		b4 = mv(GetFullPath("测试授权.exe"), GetFullPath("测试授权.exe"));
+		b3 = mv(GetFullPath("2.jpg"), GetFullPath("自动更新\\2.jpg"));
+		b4 = mv(GetFullPath("测试授权.exe"), GetFullPath("自动更新\\测试授权.exe"));
 		if (FALSE == b1)
 		{
 			LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "AutoUpdate拷贝失败，%s,%s,%d,%d,%d", strUpdateFile, GetFullPath(AutoUpdateEXE),b2,b3,b4);
