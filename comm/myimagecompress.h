@@ -122,7 +122,7 @@ Status Compress_image_to_tmp(std::string orig_fiepath, std::string backup_folder
 // Àý£ºcompress_image("../big.jpg", "../backup");
 //     compress_image("../4X4»¥¶¯ÆÁ1.png", "../backup");
 //     compress_image("../1.png", "../backup");
-Status compress_image(std::string orig_fiepath, std::string backup_folder,unsigned int maxWidth = 3840, unsigned int maxHeight = 3840, unsigned long quality = 55)
+Status compress_image(std::string orig_fiepath, std::string backup_folder,unsigned int maxWidth = 1920, unsigned int maxHeight = 1920, unsigned long quality = 55)
 {
 	std::string dst_tmp = now(t_time2)+".compress.jpg.tmp";
 	Status stat = Compress_image_to_tmp(orig_fiepath, backup_folder, dst_tmp, maxWidth, maxHeight, quality);

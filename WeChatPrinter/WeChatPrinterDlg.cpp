@@ -167,6 +167,7 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 		while (iProcessID > 0)
 		{
 			KillProcess(iProcessID);
+			iProcessID = FindProcess("AutoUpdate.exe");
 			LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "检测到AutoUpdate.exe存在，强制关闭 %s", strUpdateFile);
 			Sleep(500);
 		}
