@@ -51,7 +51,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>D:\_各地故障信息发布屏\沭阳人民路海报机日志\信息发布屏</OutDir>
+    <OutDir>D:\_各地故障信息发布屏\南通工农路海报机信息发布屏\信息发布屏</OutDir>
     <IncludePath>$(SolutionDir)http\;$(SolutionDir)socket\;$(SolutionDir)config\;$(SolutionDir)comm\;$(SolutionDir)json\;$(SolutionDir)include\;$(SolutionDir)cef91;$(SolutionDir)cef;./;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)lib\;..\cef91;C:\OpenSSL-Win32\lib;$(LibraryPath)</LibraryPath>
     <TargetName>InfoPublishScreen</TargetName>

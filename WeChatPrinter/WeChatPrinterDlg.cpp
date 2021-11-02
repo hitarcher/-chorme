@@ -229,7 +229,7 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	//=================================
 	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*///是否隐藏鼠标
 	SetWindowText(INFO_PUBLISH_SCREEN_NAME);
-#ifdef DEBUG
+#ifdef TESTMODE
 	ShowCursor(TRUE);
 #else
 	ShowCursor(FALSE);
@@ -488,7 +488,8 @@ void CWeChatPrinterDlg::LoadTemplate()
 	CString strContent = strTemp.c_str();
 	ConvertGBKToUtf8(strContent);
 	CString strInitInterface;
-	strInitInterface.Format(_T("loadPage('%s');"), strContent);
+	//增加一层转义，避免加载 复杂的xml格式的内容失败
+	strInitInterface.Format(_T("loadPage('%s');"), easyEscape(strContent.GetBuffer(0)).c_str());
 	cef_exec_js(strInitInterface.GetBuffer(0));
 
 #ifdef DETAIlEDLOG
