@@ -269,6 +269,27 @@ EXIT:
 	return FALSE;
 }
 
+void CWeChatPrinterDlg::MspaintSave(CString strFilePat)
+{
+	CString strPath = strFilePat;
+	strPath.Replace("/", "\\");
+	CString strEnd = ("\"") + strPath + ("\""); //加引号是为了避免路径有空格,因为cmd命令不认空格
+	::ShellExecuteA(NULL, "open", "mspaint.exe", strEnd, NULL, SW_SHOWNORMAL); //只认'\\'路径
+	//HWND hWin = ::FindWindow("画图(32位)", NULL);
+	Sleep(5000);
+	keybd_event(VK_CONTROL, 0, 0, 0);
+	Sleep(50);
+	keybd_event(83, 0, 0, 0);
+	Sleep(2000);
+	keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0);//抬起按键
+	Sleep(50);
+	keybd_event(83, 0, KEYEVENTF_KEYUP, 0);
+	Sleep(2000);
+
+	KillProcess("mspaint.exe");
+	Sleep(2000);		
+}
+
 void CWeChatPrinterDlg::OnPaint()
 {
 	if (IsIconic())
@@ -452,11 +473,13 @@ BOOL CWeChatPrinterDlg::ZipImg()
 		for (unsigned int i = 0; i < vecImg.size(); i++)
 		{
 			CString strBackName ="www/static/backImg";
-			int  nret = compress_image(get_fullpath((g_Config.m_strRelatePath + vecImg[i]).GetBuffer(0)), get_fullpath((g_Config.m_strRelatePath + strBackName).GetBuffer(0)));
-			if (nret)
+			//如果图片压缩失败，会一直进行压缩，后面的日志都显示不出来，界面会卡再nothingshow界面中
+			Status  nret = compress_image(get_fullpath((g_Config.m_strRelatePath + vecImg[i]).GetBuffer(0)), get_fullpath((g_Config.m_strRelatePath + strBackName).GetBuffer(0)));
+			if (Ok != nret)
 			{
 				nSumFailed++;
-				LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ZipImg", "%s 压缩报错,错误码 %d", vecImg[i] , nret);
+				LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ZipImg", "%s 压缩报错,错误码 %d", vecImg[i], nret);
+
 			}
 		}
 		nSumImg = vecImg.size();

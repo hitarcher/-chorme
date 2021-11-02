@@ -45,6 +45,25 @@ int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
 	return -1;  // Failure
 }
 
+void Transform_to_png(std::string orig_fiepath)
+{
+	Image* imageoriginal = new Image(string2wstring(orig_fiepath, "zh-CN").c_str());
+
+	// Get the CLSID of the png encoder.
+	//image/bmp 
+	//image/jpeg
+	//image/gif 
+	//image/tiff
+	//image/png
+	CLSID encoderClsid;
+	GetEncoderClsid(L"image/png", &encoderClsid);
+
+	imageoriginal->Save(string2wstring(orig_fiepath + ".tmp", "zh-CN").c_str(), &encoderClsid);
+	delete imageoriginal;
+
+	mv((orig_fiepath + ".tmp").c_str(), orig_fiepath.c_str());
+}
+
 Status Compress_image_to_tmp(std::string orig_fiepath, std::string backup_folder, std::string dst_tmp = "compress.jpg.tmp", unsigned int maxWidth = 4096, unsigned int maxHeight = 4096, unsigned long quality = 95)
 {
 	CLSID             encoderClsid;
@@ -53,9 +72,6 @@ Status Compress_image_to_tmp(std::string orig_fiepath, std::string backup_folder
 
 	// Get an image from the disk.
 	Image* imageoriginal = new Image(string2wstring(orig_fiepath, "zh-CN").c_str());
-	
-	if (imageoriginal == NULL)
-		return Ok;
 
 	// 是否需要转化
 	if (imageoriginal->GetWidth() <= maxWidth && imageoriginal->GetHeight() <= maxHeight) {
@@ -81,8 +97,19 @@ Status Compress_image_to_tmp(std::string orig_fiepath, std::string backup_folder
 		dstWidth = int(float(imageoriginal->GetWidth() * maxHeight) / float(imageoriginal->GetHeight()));
 	}
 
-	Graphics imgGraphics(imageoriginal);
-	Bitmap dstbitmap(dstWidth, dstHeight, &imgGraphics);
+	// Graphics imgGraphics 是否成功
+	Graphics *imgGraphics = new Graphics(imageoriginal);
+	if (Ok != imgGraphics->GetLastStatus())
+	{
+		delete imageoriginal;
+		delete imgGraphics;
+
+		Transform_to_png(orig_fiepath);
+
+		return Compress_image_to_tmp(orig_fiepath, backup_folder, dst_tmp, maxWidth, maxHeight, quality);
+	}
+
+	Bitmap dstbitmap(dstWidth, dstHeight, imgGraphics);
 	Graphics dstbmpGraphics(&dstbitmap);
 	dstbmpGraphics.DrawImage(imageoriginal, 0, 0, dstWidth, dstHeight);
 
@@ -109,10 +136,11 @@ Status Compress_image_to_tmp(std::string orig_fiepath, std::string backup_folder
 	stat = dstbitmap.Save(string2wstring(dst_tmp, "zh-CN").c_str(), &encoderClsid, &encoderParameters);
 
 	delete imageoriginal;
+	delete imgGraphics;
 	return stat;
 }
 
-// 压缩图片尺寸（等比）和质量，压缩成功之后源图片命名为orig_xxx.xx，压缩后的和源图片同名
+// 压缩图片尺寸（等比）和质量，压缩成功之后替换源文件，源文件备份到backup_folder
 //  @orig_fiepath: 图片源路径
 //  @backup_folder: 备份路径
 //  @maxWidth:  最大宽
