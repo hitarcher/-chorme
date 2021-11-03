@@ -13,6 +13,7 @@ using namespace Gdiplus;
 
 #include "myos.h"
 #include "mystring.h"
+static CString g_orig_fiepath = "";
 
 int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
 {
@@ -103,7 +104,13 @@ Status Compress_image_to_tmp(std::string orig_fiepath, std::string backup_folder
 	{
 		delete imageoriginal;
 		delete imgGraphics;
-
+		if (g_orig_fiepath == orig_fiepath.c_str())
+		{
+			g_orig_fiepath = "";
+			stat = Gdiplus::OutOfMemory;
+			return stat;
+		}
+		g_orig_fiepath = orig_fiepath.c_str();
 		Transform_to_png(orig_fiepath);
 
 		return Compress_image_to_tmp(orig_fiepath, backup_folder, dst_tmp, maxWidth, maxHeight, quality);

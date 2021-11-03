@@ -441,6 +441,7 @@ void CWeChatPrinterDlg::OnDestroy()
 BOOL CWeChatPrinterDlg::ZipImg()
 {
 	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ZipImg", "开始压缩素材");
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_ZIP, "ZipImg", "开始压缩素材");
 
 	if (g_nZipStatus == 2) return TRUE;
 
@@ -474,18 +475,21 @@ BOOL CWeChatPrinterDlg::ZipImg()
 		{
 			CString strBackName ="www/static/backImg";
 			//如果图片压缩失败，会一直进行压缩，后面的日志都显示不出来，界面会卡再nothingshow界面中
+			LOG2(LOGTYPE_DEBUG, LOG_NAME_ZIP, "ZipImg", "%s 开始压缩", vecImg[i]);
 			Status  nret = compress_image(get_fullpath((g_Config.m_strRelatePath + vecImg[i]).GetBuffer(0)), get_fullpath((g_Config.m_strRelatePath + strBackName).GetBuffer(0)));
 			if (Ok != nret)
 			{
 				nSumFailed++;
-				LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ZipImg", "%s 压缩报错,错误码 %d", vecImg[i], nret);
-
-			}
+				LOG2(LOGTYPE_DEBUG, LOG_NAME_ZIP, "ZipImg", "%s 压缩报错,错误码 %d\n\n\n", vecImg[i], nret);
+			}else 
+				LOG2(LOGTYPE_DEBUG, LOG_NAME_ZIP, "ZipImg", "%s 压缩完成\n", vecImg[i], nret);
 		}
 		nSumImg = vecImg.size();
 		g_nZipStatus = 2;
 	}
 	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ZipImg", "压缩完成 ,系统为%d位,内存大小为%4.2fGB,成功数量%d张，失败数量%d张。\n",b1 ? 64 : 32,b2, nSumImg- nSumFailed, nSumFailed);
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_ZIP, "ZipImg", "压缩完成,成功数量%d张，失败数量%d张。\n\n", nSumImg - nSumFailed, nSumFailed);
+
 	return TRUE;
 }
 
@@ -1764,7 +1768,7 @@ BOOL CWeChatPrinterDlg::RMQ_DealCustomMsg(CString strMsg)
 	strMsg.ReleaseBuffer();
 	if (vct[0].CompareNoCase("OFFLINE") != 0)
 	{
-		LOG2(LOGTYPE_DEBUG, LOG_NAME_RMQ, "RMQ_DealCustomMsg", "[%s]", strMsg);
+		LOG2(LOGTYPE_DEBUG, LOG_NAME_RMQ, "RMQ_DealCustomMsg", "[%s]\n", strMsg);
 	}
 	else
 	{
