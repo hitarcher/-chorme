@@ -44,6 +44,7 @@ public:
 	int m_nPositionY;					//页面纵坐标位置
 	int m_nPageWide;					//页面宽度
 	int m_nPageHigh;					//页面高度
+	bool m_bAoto;						//是否默认全屏
 public:
 	CString GetLastErr() {return m_strLastErr;}
 	BOOL LoadBaseCfg();

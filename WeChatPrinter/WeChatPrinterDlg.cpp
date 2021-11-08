@@ -136,15 +136,14 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	CFileStatus fileStatus;
 	if (CFile::GetStatus(strCEFLOGPath, fileStatus))
 	{
-		size = fileStatus.m_size/1024/1024;
+		size = fileStatus.m_size / 1024 / 1024;
 		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "cef_log.log size = %lld MB", size);
-		if (size >500)
+		if (size > 500)
 		{
 			LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "删除cef_log.log");
 			DeleteFile(strCEFLOGPath);
 		}
 	}
-
 	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/// 设置全局钩子，用来键入管理界面，以免被其他控件遮挡
 #ifdef STARTHOOK
 	hMouseHook = SetWindowsHookEx(WH_MOUSE_LL, OnMouseEvent, theApp.m_hInstance, 0);
@@ -190,6 +189,7 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 		goto EXIT;
 	}
 #endif
+
 	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*///加载基本配置
 	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "准备开始加载参数");
 
@@ -570,9 +570,17 @@ int CWeChatPrinterDlg::cef_init()
 #endif
 	//********************************************************************************
 	//实在想不起来，自适应会有什么问题，不过大部分都按照配的分辨率来的话，这个先不放开了。
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "设置全屏");
-	SetWindowPos(NULL, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), SWP_SHOWWINDOW);
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "设置全屏2");
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "设置分辨率");
+	if (g_Config.m_bAoto)
+	{
+		SetWindowPos(NULL, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), SWP_SHOWWINDOW);
+		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "设置全屏");
+	}
+	else 
+	{
+		SetWindowPos(NULL, g_Config.m_nPositionX, g_Config.m_nPositionY, g_Config.m_nPageWide, g_Config.m_nPageHigh, SWP_SHOWWINDOW);
+		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "设置分辨率为 %dx%d", g_Config.m_nPageWide, g_Config.m_nPageHigh);
+	}
 	//********************************************************************************
 
 	CRect rect;

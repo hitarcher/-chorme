@@ -43,7 +43,7 @@ BOOL CConfig::LoadBaseCfg()
 	// 获取网页的大小
 	m_nPageWide = GetPrivateProfileInt("POSITION", "PAGEWIDE", 1920, m_strCfgPath);
 	m_nPageHigh = GetPrivateProfileInt("POSITION", "PAGEHIGH", 1080, m_strCfgPath);
-
+	m_bAoto = GetPrivateProfileInt("POSITION", "AOTO", 1, m_strCfgPath);
 
 	GetPrivateProfileString("BASE","HttpUrl","FFFFFFFFFFFF",m_strHttpUrl.GetBuffer(MAX),MAX,m_strCfgPath);
 	m_strHttpUrl.ReleaseBuffer();
