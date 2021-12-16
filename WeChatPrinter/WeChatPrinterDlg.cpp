@@ -211,7 +211,8 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	m_hRMQ = CreateThread(NULL, 0, RMQThreadProc, this, 0, &dwThreadId);
 	m_hDviceStatus = CreateThread(NULL, 0, DeviceStatusThreadProc, this, 0, &dwThreadId);
 	m_hChooseProgram = CreateThread(NULL, 0, ChooseProgramThreadProc, this, 0, &dwThreadId);
-	m_hHeartBeat = CreateThread(NULL, 0, HeartBeatThreadProc, this, 0, &dwThreadId);
+	// 不需要心跳
+	//m_hHeartBeat = CreateThread(NULL, 0, HeartBeatThreadProc, this, 0, &dwThreadId);
 	if (m_hReSign && m_hRMQ && m_hDviceStatus && m_hChooseProgram)
 	{
 		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "线程创建成功");
@@ -2373,7 +2374,9 @@ void CWeChatPrinterDlg::OnTimer(UINT_PTR nIDEvent)
 		break;
 	case TIMER_CHECKMEMORY:
 		GetSystemMemoryInfo();
+		// edit by mingli 
 		SetTimer(TIMER_CHECKMEMORY, 1000 * 120, NULL);
+		//SetTimer(TIMER_CHECKMEMORY, 1000, NULL);
 		break;
 	case  TIMER_OFFLINEREBOT:
 		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnTimer", "\n无法接受RabbitMQ消息，程序即将重启\n");
@@ -2495,10 +2498,6 @@ void GetSystemMemoryInfo()
 
 	float percent_memory = ((float)usePhys / (float)physical_memory) * 100;
 	float percent_memory_virtual = ((float)useVirtual / (float)virtual_totalmemory) * 100;
-	strInfo.Format("物理内存使用率:%.2f%% 物理内存:%lld MB 可用物理内存：%lld MB\n", percent_memory, physical_memory, avalid_memory);
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_MEMORY, "GetSystemMemoryInfo", "%s", strInfo);
-	strInfo.Format("虚拟内存使用率:%.2f%% 虚拟内存:%lld MB 可用虚拟内存：%lld MB \n", percent_memory_virtual, virtual_totalmemory, virtual_memory);
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_MEMORY, "GetSystemMemoryInfo", "%s", strInfo);
 
 	SYSTEM_INFO si;
 	GetSystemInfo(&si);
@@ -2538,7 +2537,14 @@ void GetSystemMemoryInfo()
 			}
 		}
 	}
-	strInfo.Format("进程id:%d 已使用内存 %d MB\n", pid, usedMemory);
+	strInfo.Format(
+		"物理内存使用率:%.2f%% 物理内存:%lld MB 可用物理内存：%lld MB "
+		"虚拟内存使用率:%.2f%% 虚拟内存:%lld MB 可用虚拟内存：%lld MB "
+		"进程id:%d 已使用内存 %d MB"
+		, percent_memory, physical_memory, avalid_memory
+		, percent_memory_virtual, virtual_totalmemory, virtual_memory
+		, pid, usedMemory
+	);
 	LOG2(LOGTYPE_DEBUG, LOG_NAME_MEMORY, "GetSystemMemoryInfo", "%s", strInfo);
 	CloseHandle(handle);
 

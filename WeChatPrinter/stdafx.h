@@ -59,7 +59,7 @@
 #else 
 #define CHECKUPDATE		//启动自动更新
 #define	DELAY_TIME 15	//延迟启动时间
-#define	AVOIDREPEATRUN	//避免重复运行
+//#define	AVOIDREPEATRUN	//避免重复运行
 
 #endif
 

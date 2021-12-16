@@ -128,7 +128,7 @@ void SimpleApp::OnBeforeCommandLineProcessing(
 	// eidt by mingl : 设置 在无交互模式下 开启视频自动播放
 	command_line->AppendSwitchWithValue("--autoplay-policy", "no-user-gesture-required");
 	// 设置单进程执行
-	command_line->AppendSwitchWithValue("--single-process", "1");
+	//command_line->AppendSwitchWithValue("--single-process", "0");
 	// 字体不以系统的大小而改变
 	command_line->AppendSwitchWithValue("--force-device-scale-factor", "1");
 	// 跨域
@@ -138,10 +138,10 @@ void SimpleApp::OnBeforeCommandLineProcessing(
 	//command_line->AppendSwitchWithValue("max-untiled-layer-height", "20000");
 	// 设置可用内存
 	// 1024*100 kb = 100m
-	command_line->AppendSwitchWithValue("--gpu-program-cache-size-kb", "51200");
-	command_line->AppendSwitchWithValue("--mem-pressure-system-reserved-kb", "51200");
-	command_line->AppendSwitchWithValue("--memory-pressure-thresholds", "1");
-	command_line->AppendSwitchWithValue("--memory-pressure-thresholds-mb", "50");
+	//command_line->AppendSwitchWithValue("--gpu-program-cache-size-kb", "51200");
+	//command_line->AppendSwitchWithValue("--mem-pressure-system-reserved-kb", "51200");
+	//command_line->AppendSwitchWithValue("--memory-pressure-thresholds", "1");
+	//command_line->AppendSwitchWithValue("--memory-pressure-thresholds-mb", "50");
 	// crash报告
 	command_line->AppendSwitchWithValue("--full-memory-crash-report", "1");
 	//禁用硬件解码
