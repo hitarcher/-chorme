@@ -1664,16 +1664,16 @@ BOOL CWeChatPrinterDlg::CheckUpdate()
 	BOOL bPassed = GetPrivateProfileInt("Time", "Passed", 0, strMsgPath);
 	BOOL bUpdated = GetPrivateProfileInt("Time", "Updated", 0, strMsgPath);
 	int iProcessID = FindProcess("AutoUpdate.exe");
-	if (FALSE == bPassed || FALSE == bUpdated || iProcessID <= 0)
+	if (FALSE == bPassed || FALSE == bUpdated /*|| iProcessID <= 0*/)
 	{
 		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "CheckUpdate", "%d %d %d", bPassed, bUpdated, iProcessID);
 
-		if (iProcessID <= 0)//一定是由自动更新启动，且还未关闭的情况下启动本EXE。
-		{
-			CString strPath = GetFullPath(AutoUpdateEXE);
-			StartProcess3(strPath);
-		}
-		return FALSE;
+// 		if (iProcessID <= 0)//一定是由自动更新启动，且还未关闭的情况下启动本EXE。
+// 		{
+// 			CString strPath = GetFullPath(AutoUpdateEXE);
+// 			StartProcess3(strPath);
+// 		}
+// 		return FALSE;
 	}
 	return TRUE;
 }

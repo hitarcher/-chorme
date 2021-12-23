@@ -70,7 +70,7 @@ Status Compress_image_to_tmp(std::string orig_fiepath, std::string backup_folder
 	CLSID             encoderClsid;
 	EncoderParameters encoderParameters;
 	Status            stat;
-
+	static int		  nCount = 0;
 	// Get an image from the disk.
 	Image* imageoriginal = new Image(string2wstring(orig_fiepath, "zh-CN").c_str());
 
@@ -112,7 +112,13 @@ Status Compress_image_to_tmp(std::string orig_fiepath, std::string backup_folder
 		}
 		g_orig_fiepath = orig_fiepath.c_str();
 		Transform_to_png(orig_fiepath);
-
+		nCount++;
+		if (nCount >3)
+		{
+			nCount = 0;
+			stat = Gdiplus::GenericError;
+			return stat;
+		}
 		return Compress_image_to_tmp(orig_fiepath, backup_folder, dst_tmp, maxWidth, maxHeight, quality);
 	}
 
