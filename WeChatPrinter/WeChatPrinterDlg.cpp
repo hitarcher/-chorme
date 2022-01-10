@@ -116,19 +116,14 @@ END_MESSAGE_MAP()
 BOOL CWeChatPrinterDlg::OnInitDialog()
 {
 	CImageDlg::OnInitDialog();
-	// 设置此对话框的图标。当应用程序主窗口不是对话框时，框架将自动
-	//  执行此操作
 	SetIcon(m_hIcon, TRUE);			// 设置大图标
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 	/************************************************************************/
 	/*                        程 序 入 口                                   */
 	/************************************************************************/
-	//=================================
-	// 初始化
-	//=================================
 	SET_LOGTYPE((LOG_TYPE)(LOGTYPE_DEBUG | LOGTYPE_ERROR | LOGTYPE_SPECIAL));
 	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "==============START==============", "");
-	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*///删除超过30天的日志
+	//删除超过30天的日志
 	LOG_CLEAR(30);
 	//cef_log.log 可能会异常过大，这边每次启动会检查并删除
 	ULONGLONG size;
@@ -137,26 +132,18 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	if (CFile::GetStatus(strCEFLOGPath, fileStatus))
 	{
 		size = fileStatus.m_size / 1024 / 1024;
-		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "cef_log.log size = %lld MB", size);
-		if (size > 500)
+		if (size > 100)
 		{
+			LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "cef_log.log size = %lld MB", size);
 			LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "删除cef_log.log");
 			DeleteFile(strCEFLOGPath);
 		}
 	}
-	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/// 设置全局钩子，用来键入管理界面，以免被其他控件遮挡
+	// 设置全局钩子，用来键入管理界面，以免被其他控件遮挡
 #ifdef STARTHOOK
 	hMouseHook = SetWindowsHookEx(WH_MOUSE_LL, OnMouseEvent, theApp.m_hInstance, 0);
 #endif
-	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/// 用于更新 自动更新程序
-	//存在问题，批处理总是执行失败，无法将atuoUpdate.exe 迁移过去，导致程序崩溃。
-// 	if (CheckFileExist(GetFullPath("update.bat")))
-// 	{
-// 		StartProcess3(GetFullPath("update.bat")); 
-// 		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "执行更新程序，替换文件");
-// 		goto EXIT;
-// 	}
-
+	// 用于更新自动更新程序，避免存在一些异常版本无法更新
 	CString strUpdateFile = GetFullPath("AutoUpdate.exe");
 	if (CheckFileExist(strUpdateFile))
 	{
@@ -181,18 +168,15 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 			goto EXIT;
 		}
 	}
-
 #ifdef CHECKUPDATE
-	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*///是否启动自动更新检测
+	//是否启动自动更新检测
 	if (FALSE == CheckUpdate())
 	{
 		goto EXIT;
 	}
 #endif
 
-	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*///加载基本配置
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "准备开始加载参数");
-
+	//加载基本配置
 	if (FALSE == g_Config.LoadBaseCfg())
 	{
 		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "OnInitDialog", "[g_Config.LoadBaseCfg()][%s]", g_Config.GetLastErr());
@@ -200,7 +184,16 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	}
 	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "加载参数成功");
 
-	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*///加载动态库
+	m_strHtmlPath = "file:///" + GetFullPath(g_Config.m_strRelatePath + "index.html");
+	m_strHtmlPath.Replace("\\", "/");
+	ConvertGBKToUtf8(m_strHtmlPath);
+	//cef3初始化，此处会产生多个进程，从此往上的日志会重复出现。
+	if (FALSE == cef_init())
+	{
+		goto EXIT;
+	}
+
+	//加载动态库
 	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "准备开始加载动态库");
 	if (FALSE == LoadRMQPubAndRMQSUBDLL())
 	{
@@ -211,8 +204,6 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	m_hRMQ = CreateThread(NULL, 0, RMQThreadProc, this, 0, &dwThreadId);
 	m_hDviceStatus = CreateThread(NULL, 0, DeviceStatusThreadProc, this, 0, &dwThreadId);
 	m_hChooseProgram = CreateThread(NULL, 0, ChooseProgramThreadProc, this, 0, &dwThreadId);
-	// 不需要心跳
-	//m_hHeartBeat = CreateThread(NULL, 0, HeartBeatThreadProc, this, 0, &dwThreadId);
 	if (m_hReSign && m_hRMQ && m_hDviceStatus && m_hChooseProgram)
 	{
 		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "线程创建成功");
@@ -223,45 +214,36 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 		goto EXIT;
 	}
 
-	// 启动代理
-	//ProxyStart_http();
-	//=================================
-	// 窗口属性设置
-	//=================================
-	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*///是否隐藏鼠标
 	SetWindowText(INFO_PUBLISH_SCREEN_NAME);
 #ifdef TESTMODE
 	ShowCursor(TRUE);
 #else
 	ShowCursor(FALSE);
 #endif 
-	//可能会导致程序无法启动
+//可能会导致程序无法启动
 // 	if (g_Config.m_bTopMost)
 // 	{
 // 		//::SetWindowPos(m_hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);//最前端
 // 		SetForegroundWindow();
 // 	}
-	ProxyStart_http();
-	m_strHtmlPath = "file:///" + GetFullPath(g_Config.m_strRelatePath + "index.html");
-	m_strHtmlPath.Replace("\\", "/");
-	ConvertGBKToUtf8(m_strHtmlPath);
-	/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*///cef3初始化
-	if (FALSE == cef_init())
-	{
-		goto EXIT;
-	}
+//ProxyStart_http();
 	
 	//选择加载的节目json，包含离线压缩包解压，选择紧急插播节目或者是普通节目
 	if (FALSE == ChooseJson())
 	{
 		goto EXIT;
 	}
+	//选择节目
 	SetTimer(TIMER_CHOOSEPROGAME,10, NULL);
+	//签到
 	SetTimer(TIMER_RESIGN, 100, NULL);
+	//检查是否存在临时文件
 	SetTimer(TIMER_CHECKINCOMPELEDFILE, 3000, NULL);
+	//检查内存消耗量
 	SetTimer(TIMER_CHECKMEMORY, 5000, NULL);
 	//隔30天删除一次没有归属的素材
 	DelateResource();
+
 	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "界面初始化成功");
 	return TRUE;
 EXIT:
@@ -497,16 +479,16 @@ BOOL CWeChatPrinterDlg::ZipImg()
 void CWeChatPrinterDlg::LoadTemplate()
 {
 	int i = 0;
-	while (FALSE == g_bH5IsReady)
-	{
-		Sleep(1000);
-		i++;
-		if (i == 30)
-		{
-			LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "LoadTemplate", "累计%d秒未收到HTTP通知，强制加载模板", i);
-			break;
-		}
-	}
+// 	while (FALSE == g_bH5IsReady)
+// 	{
+// 		Sleep(1000);
+// 		i++;
+// 		if (i == 30)
+// 		{
+// 			LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "LoadTemplate", "累计%d秒未收到HTTP通知，强制加载模板", i);
+// 			break;
+// 		}
+// 	}
 	std::string strTemp = jForIE.dump();
 	if (strTemp == "")
 	{
@@ -532,7 +514,7 @@ int CWeChatPrinterDlg::cef_init()
 {
 	CString strTemp = m_strHtmlPath;
 	ConvertUtf8ToGBK(strTemp);
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "准备cef 初始化，路径为%s", strTemp);
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "准备cef 初始化，路径为%s\n", strTemp);
 
 	// Enable High-DPI support on Windows 7 or newer.
 	CefEnableHighDPISupport();
@@ -577,7 +559,7 @@ int CWeChatPrinterDlg::cef_init()
 		SetWindowPos(NULL, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), SWP_SHOWWINDOW);
 		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "设置全屏");
 	}
-	else 
+	else
 	{
 		SetWindowPos(NULL, g_Config.m_nPositionX, g_Config.m_nPositionY, g_Config.m_nPageWide, g_Config.m_nPageHigh, SWP_SHOWWINDOW);
 		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "设置分辨率为 %dx%d", g_Config.m_nPageWide, g_Config.m_nPageHigh);
@@ -1661,13 +1643,14 @@ BOOL CWeChatPrinterDlg::CheckUpdate()
 		StartProcess3(strPath);
 		return FALSE;
 	}
-	BOOL bPassed = GetPrivateProfileInt("Time", "Passed", 0, strMsgPath);
-	BOOL bUpdated = GetPrivateProfileInt("Time", "Updated", 0, strMsgPath);
+	BOOL bPassed = GetPrivateProfileInt("Time", "Passed", 0, strMsgPath);//检测是否授权
+	BOOL bUpdated = GetPrivateProfileInt("Time", "Updated", 0, strMsgPath);//检测是否更新过了
 	int iProcessID = FindProcess("AutoUpdate.exe");
 	if (FALSE == bPassed || FALSE == bUpdated /*|| iProcessID <= 0*/)
 	{
 		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "CheckUpdate", "%d %d %d", bPassed, bUpdated, iProcessID);
 
+		//由于3.0.1.0 修改为多进程，如果添加下面代码，会导致程序反复重复启动。因为程序会启动多个导致。 2022 
 // 		if (iProcessID <= 0)//一定是由自动更新启动，且还未关闭的情况下启动本EXE。
 // 		{
 // 			CString strPath = GetFullPath(AutoUpdateEXE);
