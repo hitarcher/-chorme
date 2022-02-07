@@ -15,3 +15,11 @@
 #pragma comment(lib, "cef_sandbox.lib")
 
 #endif
+#include "simple_app.h"
+#include "simple_handler.h"
+
+
+int cef_init(CString m_strHtmlPath);
+void cef_close();
+void cef_load_url(IN std::string _utf_url, IN int delay = 0);
+void cef_exec_js(IN std::string _utf_js, IN int delay = 0);
