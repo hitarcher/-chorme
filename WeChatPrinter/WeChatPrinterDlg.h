@@ -9,20 +9,10 @@
 #include "CommonFun.h"
 #include "Shell.h"
 #include "ImageDlg.h"
-#include "LOG2.H"
 #include <sqlite3.h>
 #include "CommTbl.h"
-#include "json.hpp"
-using json = nlohmann::json;
 #include "Admins.h"
-#include "Config.h"
-#include <stdio.h>
-
-#ifdef DEBUG                            
-#pragma comment(lib, "CommUtilsd.lib")  
-#else                                   
-#pragma comment(lib, "CommUtils.lib")   
-#endif         
+#include "Heads.h"
 
 //截屏头文件
 #include "MakePNG.h"
@@ -39,10 +29,8 @@ using json = nlohmann::json;
 
 //CEF3
 #include "mycef.h"
-#include "simple_app.h"
-#include "simple_handler.h"
+#include "ProxyToH5.h"
 
-#include "myhttp.h"
 /************************************************************************/
 /*                              常    量                                */
 /************************************************************************/
@@ -70,6 +58,8 @@ enum MULITIPEPRO
 
 
 // CWeChatPrinterDlg 对话框
+#define maindlg ((CWeChatPrinterDlg*)(AfxGetApp()->GetMainWnd()))
+
 class CWeChatPrinterDlg : public CImageDlg/*,public IDispatch*/
 {
 // 构造
@@ -134,11 +124,6 @@ private:
 	CString m_strOrgCode;											//签到后机构号  
 	CString m_strDeviceType;									    //签到后设备类型
 																    
-	CefRefPtr<SimpleApp> m_cef_app;								    
-	int cef_init();
-	void cef_close();											    
-	void cef_load_url(IN std::string _utf_url, IN int delay=0);
-	void cef_exec_js(IN std::string _utf_js, IN int delay = 0); 
 	// 加载模板
 	void LoadTemplate();
 
@@ -215,13 +200,12 @@ private:
 
 	// 启动代理
  	void ProxyStart_http();
- 	//  http
- 	httplib::Server server_httpproxy;
- 	void ProxyConsume_http(IN std::string path, IN std::string request, OUT std::string & replay);
 
 public:
 	// 窗口大小
 	CRect	m_rc;
+	CRect rect;
+
 	//退出时的密码
 	CString m_strAdminEnter;
 

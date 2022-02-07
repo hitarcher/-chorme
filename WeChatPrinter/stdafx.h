@@ -39,6 +39,7 @@
 
 #define LOG_NAME_TRADE "TRADE.LOG"						//平台交易日志
 #define LOG_NAME_DEBUG "DEBUG.LOG"						//运行日志
+#define LOG_NAME_CEF "CEF.LOG"						//运行日志
 #define LOG_NAME_RMQ "RMQ.LOG"							//RMQ消息日志
 #define LOG_NAME_OFFLINE "OFFLINE.LOG"					//心跳日志
 #define LOG_NAME_MEMORY "MEMORY.LOG"					//内存日志
@@ -47,7 +48,7 @@
 #define INFO_PUBLISH_SCREEN_NAME "INFO_PUBLISH_SCREEN"
 
 
-#define TESTMODE		//开启测试模式
+//#define TESTMODE		//开启测试模式
 
 
 

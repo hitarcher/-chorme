@@ -2,12 +2,10 @@
 #include "WeChatPrinter.h"
 #include "WeChatPrinterDlg.h"
 #include "afxdialogex.h"
-
-#include "mystring.h"
-#include "myos.h"
-#include "mylog.h"
 #include "myimagecompress.h"
 #include "simple_handler.h"
+
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif            
@@ -94,15 +92,12 @@ CWeChatPrinterDlg::CWeChatPrinterDlg(CWnd* pParent /*=NULL*/)
 	m_hDviceStatus = NULL;
 	m_hDviceStatusEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 
-// 	m_hHeartBeat = NULL;
-// 	m_hHeartBeatEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
 
 void CWeChatPrinterDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CImageDlg::DoDataExchange(pDX);
-//	DDX_Control(pDX, IDC_EXPLORER_MAIN, m_netBrower);
 }
 
 BEGIN_MESSAGE_MAP(CWeChatPrinterDlg, CImageDlg)
@@ -125,6 +120,7 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "==============START==============", "");
 	//删除超过30天的日志
 	LOG_CLEAR(30);
+
 	//cef_log.log 可能会异常过大，这边每次启动会检查并删除
 	ULONGLONG size;
 	CString strCEFLOGPath = get_fullpath("cef_catch//cef_log.log").c_str();
@@ -182,13 +178,13 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "OnInitDialog", "[g_Config.LoadBaseCfg()][%s]", g_Config.GetLastErr());
 		goto EXIT;
 	}
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "加载参数成功");
-
+	//设置加载页面的地址
 	m_strHtmlPath = "file:///" + GetFullPath(g_Config.m_strRelatePath + "index.html");
 	m_strHtmlPath.Replace("\\", "/");
 	ConvertGBKToUtf8(m_strHtmlPath);
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "加载参数成功");
 	//cef3初始化，此处会产生多个进程，从此往上的日志会重复出现。
-	if (FALSE == cef_init())
+	if (FALSE == cef_init(m_strHtmlPath))
 	{
 		goto EXIT;
 	}
@@ -199,6 +195,7 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	{
 		goto EXIT;
 	}
+
 	DWORD dwThreadId = 0;
 	m_hReSign = CreateThread(NULL, 0, ReSignThreadProc, this, 0, &dwThreadId);
 	m_hRMQ = CreateThread(NULL, 0, RMQThreadProc, this, 0, &dwThreadId);
@@ -252,26 +249,6 @@ EXIT:
 	return FALSE;
 }
 
-void CWeChatPrinterDlg::MspaintSave(CString strFilePat)
-{
-	CString strPath = strFilePat;
-	strPath.Replace("/", "\\");
-	CString strEnd = ("\"") + strPath + ("\""); //加引号是为了避免路径有空格,因为cmd命令不认空格
-	::ShellExecuteA(NULL, "open", "mspaint.exe", strEnd, NULL, SW_SHOWNORMAL); //只认'\\'路径
-	//HWND hWin = ::FindWindow("画图(32位)", NULL);
-	Sleep(5000);
-	keybd_event(VK_CONTROL, 0, 0, 0);
-	Sleep(50);
-	keybd_event(83, 0, 0, 0);
-	Sleep(2000);
-	keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0);//抬起按键
-	Sleep(50);
-	keybd_event(83, 0, KEYEVENTF_KEYUP, 0);
-	Sleep(2000);
-
-	KillProcess("mspaint.exe");
-	Sleep(2000);		
-}
 
 void CWeChatPrinterDlg::OnPaint()
 {
@@ -333,94 +310,6 @@ void CWeChatPrinterDlg::OnDestroy()
 }
 
  
- void CWeChatPrinterDlg::ProxyStart_http()
- {
-	 LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ProxyStart_http", "创建HTTP服务");
-
- 	// 创建http代理
- 	server_httpproxy.Post("/cpp", [&](const Request &req, Response &res, const ContentReader &content_reader) {
- 		std::string body;
- 		content_reader([&](const char *data, size_t data_length) {
- 			body.append(data, data_length);
- 			return true;
- 		});
-		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ProxyStart_http", "接收到 HTTP通知 body=%s", body.c_str());
- 	    std::string replay;
- 		ProxyConsume_http(req.path, body, replay);//处理H5的信息
- 		//res.set_content(replay.c_str(), "json");//返回给H5
- 	});
- 	//H5可以通过，http://127.0.0.1:8866/public/*.* 的格式访问我static里面的任意素材。
- 	//如果不加绝对路径的话，在调试模式下，可能会访问不到素材，报404
- 	server_httpproxy.set_mount_point("/public", get_fullpath("/data/GUI/www/static").c_str());
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ProxyStart_http", "ProxyStart_http 1 ");
- 	std::thread thread_proxy_http([&]() {
- 		bool bRet = server_httpproxy.listen("0.0.0.0", 8866);//监听H5的消息
-		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ProxyStart_http", "开启HTTP监听");
- 	});
- 	thread_proxy_http.detach();
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ProxyStart_http", "ProxyStart_http end ");
-
- }
- 
- void CWeChatPrinterDlg::ProxyConsume_http(IN std::string path, IN std::string request, OUT std::string & replay)
- {
-	 if (request == "")
-	 {
-		 LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "ParseNewTemplateOfH5", "request[内容为空]");
-		 return ;
-	 }
- 	json jrequeset = json::parse(easytoGBK(request).c_str());	
- 
- 	if (jrequeset["code"] == "zip")//交易码
- 	{
-		return;
-
- 		g_nZipStatus = 1;
- 		//保存压缩后的文件
- 		std::string strBase64 = jrequeset["image_transformate_base64"].get<std::string>();
- 		CString strTemp= jrequeset["image_path"].get<std::string>().c_str();
- 		int pos = strTemp.ReverseFind('/'); 
- 		CString strName = "www//static//";
- 		strName += strTemp.Right(strTemp.GetLength() - pos-1);
- 		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ProxyConsume_http", "%s 待压缩", strName);
- 		Base64ToPicture(strBase64.c_str(), GetFullPath(g_Config.m_strRelatePath + strName));
- 		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ProxyConsume_http", "%s 压缩完成", strName);
- 
- 		g_nZipnum++;
- 
- 		replay = "ziping";
- 	}
- 	else if (jrequeset["code"] == "zipok")
- 	{	
-		return;
- 		vector <std::string> vecImages = jrequeset["images"];
- 		//判断处理的图片数量和本地已经转换好的图片数量计数是否一致，没有的话就循环
- 		while (vecImages.size() != g_nZipnum)
- 		{
- 			if (g_nZipStatus != 1) break;
- 			Sleep(500);
- 		}
- 		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ProxyConsume_http", "压缩完成，启动程序");
- 
- 		SetTimer(TIMER_LOADPAGE, DELAY_TIME*1000, NULL);
- 		g_nZipnum = 0;
- 		g_nZipStatus = 2;
- 
- 		replay = "zipok";
- 	}
-	else if (jrequeset["code"] == "H5OK")
-	{
-		//replay = "success";
-
-		CString strInitInterface;
-		strInitInterface.Format(_T("GetH5OK();"));
-		cef_exec_js(strInitInterface.GetBuffer(0));
-
-		g_bH5IsReady = TRUE;
-		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ProxyConsume_http", "H5加载完毕");
-	}
- }
-
 BOOL CWeChatPrinterDlg::ZipImg()
 {
 	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ZipImg", "开始压缩素材");
@@ -508,130 +397,6 @@ void CWeChatPrinterDlg::LoadTemplate()
 	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "LoadTemplate", "加载模板成功");
 #endif
 
-}
-
-int CWeChatPrinterDlg::cef_init()
-{
-	CString strTemp = m_strHtmlPath;
-	ConvertUtf8ToGBK(strTemp);
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "准备cef 初始化，路径为%s\n", strTemp);
-
-	// Enable High-DPI support on Windows 7 or newer.
-	CefEnableHighDPISupport();
-
-	void* sandbox_info = nullptr;
-
-#if defined(CEF_USE_SANDBOX)
-	CefScopedSandboxInfo scoped_sandbox;
-	sandbox_info = scoped_sandbox.sandbox_info();
-#endif
-
-	CefMainArgs main_args(theApp.m_hInstance);
-	int exit_code = CefExecuteProcess(main_args, nullptr, sandbox_info);
-	if (exit_code >= 0) {
-		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "CefExecuteProcess error_code = %d", exit_code);
-		return FALSE;
-	}
-	CefRefPtr<CefCommandLine> command_line = CefCommandLine::CreateCommandLine();
-	command_line->InitFromString(::GetCommandLineW());
-	CefSettings settings;
-	if (command_line->HasSwitch("enable-chrome-runtime")) {
-		settings.chrome_runtime = true;
-	}
-
-	settings.remote_debugging_port = 33220;//设置远程调试端口，可以在浏览器里打开调试窗口，比较方便
-	settings.multi_threaded_message_loop = true;//这个选项会影响到消息循环的模式，仔细选择
-	settings.log_severity = LOGSEVERITY_ERROR;
-	CefString(&settings.cache_path) = easytoUTF(get_fullpath("cef_catch"));
-	CefString(&settings.log_file) = easytoUTF(get_fullpath("cef_catch//cef_log.log"));
-	CefString(&settings.framework_dir_path) = easytoUTF(get_fullpath(""));
-	CefString(&settings.resources_dir_path) = easytoUTF(get_fullpath("cef_Resources"));
-	CefString(&settings.locales_dir_path) = easytoUTF(get_fullpath("cef_Resources\\locales"));
-
-#if !defined(CEF_USE_SANDBOX)
-	settings.no_sandbox = true;
-#endif
-	//********************************************************************************
-	//实在想不起来，自适应会有什么问题，不过大部分都按照配的分辨率来的话，这个先不放开了。
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "设置分辨率");
-	if (g_Config.m_bAoto)
-	{
-		SetWindowPos(NULL, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), SWP_SHOWWINDOW);
-		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "设置全屏");
-	}
-	else
-	{
-		SetWindowPos(NULL, g_Config.m_nPositionX, g_Config.m_nPositionY, g_Config.m_nPageWide, g_Config.m_nPageHigh, SWP_SHOWWINDOW);
-		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "设置分辨率为 %dx%d", g_Config.m_nPageWide, g_Config.m_nPageHigh);
-	}
-	//********************************************************************************
-
-	CRect rect;
-	GetWindowRect(&rect);
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "new SimpleApp");
-	m_cef_app =
-		new SimpleApp(
-			m_strHtmlPath.GetBuffer(0)
-			/*"www.baidu.com"*/
-			, m_hWnd
-			, rect
-		);
-	if (m_cef_app == NULL)
-	{
-		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "new SimpleApp Error");
-		return FALSE;
-	}
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "new SimpleApp OK");
-	bool bret = CefInitialize(main_args, settings, m_cef_app.get(), sandbox_info);
-	if (FALSE  == bret)
-	{
-		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "cef 初始化失败");
-		return FALSE;
-	}
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "cef 初始化成功");
-	return TRUE;
-}
-
-void CWeChatPrinterDlg::cef_close()
-{
-	/*edit by mingl : 单进程模式下，CefShutdown会出现阻塞；但是多进程下运行正常；考虑到单进程下直接退出不用管其他进程，所以也可以不用管*/
-	//CefShutdown();
-	/*end by mingl*/
-}
-
-void CWeChatPrinterDlg::cef_load_url(IN std::string _utf_url, IN int delay)
-{
-	if (delay) Sleep(delay);
-	if (m_cef_app == NULL) return cef_load_url(_utf_url, 500);
-
-	CefRefPtr<SimpleHandler> default_handler = (SimpleHandler*)(void*)m_cef_app->GetDefaultClient();
-	if (default_handler == NULL) return cef_load_url(_utf_url, 500);
-
-	CefRefPtr<CefBrowser> default_browser = default_handler->GetBrowser();
-	if (default_browser == NULL) return cef_load_url(_utf_url, 500);
-
-	CefRefPtr<CefFrame> default_frame = default_browser->GetMainFrame();
-	if (default_frame == NULL) return cef_load_url(_utf_url, 500);
-
-	default_frame->LoadURL(_utf_url.c_str());
-}
-
-void CWeChatPrinterDlg::cef_exec_js(IN std::string _utf_js, IN int delay)
-{
-	if (delay) Sleep(delay);
-	if (m_cef_app == NULL) return cef_exec_js(_utf_js, 500);
-
-	CefRefPtr<SimpleHandler> default_handler = (SimpleHandler*)(void*)m_cef_app->GetDefaultClient();
-	if (default_handler == NULL) return cef_exec_js(_utf_js, 500);
-
-	CefRefPtr<CefBrowser> default_browser = default_handler->GetBrowser();
-	if (default_browser == NULL) return cef_exec_js(_utf_js, 500);
-
-	CefRefPtr<CefFrame> default_frame = default_browser->GetMainFrame();
-	if (default_frame == NULL) return cef_exec_js(_utf_js, 500);
-	if (default_frame->IsValid() == false)return cef_exec_js(_utf_js, 500);
-	if (default_frame->GetURL().empty() == true) return cef_exec_js(_utf_js, 500);
-	default_frame->ExecuteJavaScript(CefString(_utf_js.c_str()), default_frame->GetURL(), 0);
 }
 
 /****************************		节目相关函数		*****************************************/
