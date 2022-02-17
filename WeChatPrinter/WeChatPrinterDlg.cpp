@@ -117,7 +117,7 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	/*                        程 序 入 口                                   */
 	/************************************************************************/
 	SET_LOGTYPE((LOG_TYPE)(LOGTYPE_DEBUG | LOGTYPE_ERROR | LOGTYPE_SPECIAL));
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "==============START==============", "");
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_CEF, "==============START==============", "");
 	//删除超过30天的日志
 	LOG_CLEAR(30);
 
@@ -130,8 +130,8 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 		size = fileStatus.m_size / 1024 / 1024;
 		if (size > 100)
 		{
-			LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "cef_log.log size = %lld MB", size);
-			LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "删除cef_log.log");
+			LOG2(LOGTYPE_DEBUG, LOG_NAME_CEF, "OnInitDialog", "cef_log.log size = %lld MB", size);
+			LOG2(LOGTYPE_DEBUG, LOG_NAME_CEF, "OnInitDialog", "删除cef_log.log");
 			DeleteFile(strCEFLOGPath);
 		}
 	}
@@ -143,14 +143,14 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	CString strUpdateFile = GetFullPath("AutoUpdate.exe");
 	if (CheckFileExist(strUpdateFile))
 	{
-		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "检测到存在 %s", strUpdateFile);
+		LOG2(LOGTYPE_DEBUG, LOG_NAME_CEF, "OnInitDialog", "检测到存在 %s", strUpdateFile);
 		Sleep(2000);
 		int iProcessID = FindProcess("AutoUpdate.exe");
 		while (iProcessID > 0)
 		{
 			KillProcess(iProcessID);
 			iProcessID = FindProcess("AutoUpdate.exe");
-			LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "检测到AutoUpdate.exe存在，强制关闭 %s", strUpdateFile);
+			LOG2(LOGTYPE_DEBUG, LOG_NAME_CEF, "OnInitDialog", "检测到AutoUpdate.exe存在，强制关闭 %s", strUpdateFile);
 			Sleep(500);
 		}
 		bool b1, b2, b3, b4;
@@ -160,7 +160,7 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 		b4 = mv(GetFullPath("测试授权.exe"), GetFullPath("自动更新\\测试授权.exe"));
 		if (FALSE == b1)
 		{
-			LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "AutoUpdate拷贝失败，%s,%s,%d,%d,%d", strUpdateFile, GetFullPath(AutoUpdateEXE),b2,b3,b4);
+			LOG2(LOGTYPE_DEBUG, LOG_NAME_CEF, "OnInitDialog", "AutoUpdate拷贝失败，%s,%s,%d,%d,%d", strUpdateFile, GetFullPath(AutoUpdateEXE),b2,b3,b4);
 			goto EXIT;
 		}
 	}
@@ -175,19 +175,21 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	//加载基本配置
 	if (FALSE == g_Config.LoadBaseCfg())
 	{
-		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "OnInitDialog", "[g_Config.LoadBaseCfg()][%s]", g_Config.GetLastErr());
+		LOG2(LOGTYPE_ERROR, LOG_NAME_CEF, "OnInitDialog", "[g_Config.LoadBaseCfg()][%s]", g_Config.GetLastErr());
 		goto EXIT;
 	}
 	//设置加载页面的地址
 	m_strHtmlPath = "file:///" + GetFullPath(g_Config.m_strRelatePath + "index.html");
 	m_strHtmlPath.Replace("\\", "/");
 	ConvertGBKToUtf8(m_strHtmlPath);
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "加载参数成功");
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_CEF, "OnInitDialog", "加载参数成功");
 	//cef3初始化，此处会产生多个进程，从此往上的日志会重复出现。
 	if (FALSE == cef_init(m_strHtmlPath))
 	{
 		goto EXIT;
 	}
+
+	/***********************************************************************************************************/
 
 	//加载动态库
 	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "准备开始加载动态库");
@@ -359,7 +361,7 @@ BOOL CWeChatPrinterDlg::ZipImg()
 		nSumImg = vecImg.size();
 		g_nZipStatus = 2;
 	}
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ZipImg", "压缩完成 ,系统为%d位,内存大小为%4.2fGB,成功数量%d张，失败数量%d张。\n",b1 ? 64 : 32,b2, nSumImg- nSumFailed, nSumFailed);
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ZipImg", "压缩完成 ,系统为%d位,内存大小为%4.2fGB,成功数量%d张，失败数量%d张。",b1 ? 64 : 32,b2, nSumImg- nSumFailed, nSumFailed);
 	LOG2(LOGTYPE_DEBUG, LOG_NAME_ZIP, "ZipImg", "压缩完成,成功数量%d张，失败数量%d张。\n\n", nSumImg - nSumFailed, nSumFailed);
 
 	return TRUE;
@@ -1402,7 +1404,7 @@ BOOL CWeChatPrinterDlg::CheckUpdate()
 	CString strMsgPath = GetFullPath(AutoUpdateMsg);
 	if (FALSE == CheckFileExist(strMsgPath))
 	{
-		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "CheckUpdate", " [%s]未找到", strMsgPath);
+		LOG2(LOGTYPE_ERROR, LOG_NAME_CEF, "CheckUpdate", " [%s]未找到", strMsgPath);
 		CString strPath = GetFullPath(AutoUpdateEXE);
 		//StartProcess2(strPath, FALSE);//2020.12.29 失效了，打开闪退,原因：路径里有空格
 		StartProcess3(strPath);
@@ -1413,7 +1415,7 @@ BOOL CWeChatPrinterDlg::CheckUpdate()
 	int iProcessID = FindProcess("AutoUpdate.exe");
 	if (FALSE == bPassed || FALSE == bUpdated /*|| iProcessID <= 0*/)
 	{
-		LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "CheckUpdate", "%d %d %d", bPassed, bUpdated, iProcessID);
+		LOG2(LOGTYPE_ERROR, LOG_NAME_CEF, "CheckUpdate", "%d %d %d", bPassed, bUpdated, iProcessID);
 
 		//由于3.0.1.0 修改为多进程，如果添加下面代码，会导致程序反复重复启动。因为程序会启动多个导致。 2022 
 // 		if (iProcessID <= 0)//一定是由自动更新启动，且还未关闭的情况下启动本EXE。

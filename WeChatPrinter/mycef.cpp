@@ -11,7 +11,7 @@ int cef_init(CString m_strHtmlPath)
 {
 	CString strTemp = m_strHtmlPath;
 	ConvertUtf8ToGBK(strTemp);
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "准备cef 初始化，路径为%s\n", strTemp);
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_CEF, "cef_init", "准备cef 初始化，路径为%s\n", strTemp);
 
 	// Enable High-DPI support on Windows 7 or newer.
 	CefEnableHighDPISupport();
@@ -26,7 +26,7 @@ int cef_init(CString m_strHtmlPath)
 	CefMainArgs main_args(theApp.m_hInstance);
 	int exit_code = CefExecuteProcess(main_args, nullptr, sandbox_info);
 	if (exit_code >= 0) {
-		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "CefExecuteProcess error_code = %d", exit_code);
+		LOG2(LOGTYPE_DEBUG, LOG_NAME_CEF, "cef_init", "CefExecuteProcess error_code = %d", exit_code);
 		return FALSE;
 	}
 
@@ -52,23 +52,23 @@ int cef_init(CString m_strHtmlPath)
 #endif
 	//	rect和SetWindowPos 必须在这个位置，在SimpleApp 后或者 CefExecuteProcess 之前会有问题，多进程的情况下。 2022.1.13
 	//	实在想不起来，自适应会有什么问题，不过大部分都按照配的分辨率来的话，这个先不放开了。
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "设置分辨率");
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_CEF, "cef_init", "设置分辨率");
 	if (g_Config.m_bAoto)
 	{
 		maindlg->SetWindowPos(NULL, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), SWP_SHOWWINDOW);
-		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "设置全屏");
+		LOG2(LOGTYPE_DEBUG, LOG_NAME_CEF, "cef_init", "设置全屏");
 	}
 	else
 	{
 		maindlg->SetWindowPos(NULL, g_Config.m_nPositionX, g_Config.m_nPositionY, g_Config.m_nPageWide, g_Config.m_nPageHigh, SWP_SHOWWINDOW);
-		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "设置分辨率为 %dx%d", g_Config.m_nPageWide, g_Config.m_nPageHigh);
+		LOG2(LOGTYPE_DEBUG, LOG_NAME_CEF, "cef_init", "设置分辨率为 %dx%d", g_Config.m_nPageWide, g_Config.m_nPageHigh);
 	}
 	CRect rect;
  	maindlg->GetWindowRect(&rect);
 
 	//********************************************************************************
 
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "new SimpleApp");
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_CEF, "cef_init", "new SimpleApp");
 	m_cef_app =
 		new SimpleApp(
 			m_strHtmlPath.GetBuffer(0)
@@ -78,17 +78,17 @@ int cef_init(CString m_strHtmlPath)
 		);
 	if (m_cef_app == NULL)
 	{
-		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "new SimpleApp Error");
+		LOG2(LOGTYPE_DEBUG, LOG_NAME_CEF, "cef_init", "new SimpleApp Error");
 		return FALSE;
 	}
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "new SimpleApp OK");
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_CEF, "cef_init", "new SimpleApp OK");
 	bool bret = CefInitialize(main_args, settings, m_cef_app.get(), sandbox_info);
 	if (FALSE == bret)
 	{
-		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "cef 初始化失败");
+		LOG2(LOGTYPE_DEBUG, LOG_NAME_CEF, "cef_init", "cef 初始化失败");
 		return FALSE;
 	}
-	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "cef_init", "cef 初始化成功");
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_CEF, "cef_init", "cef 初始化成功");
 	return TRUE;
 }
 
