@@ -1827,12 +1827,13 @@ DWORD CWeChatPrinterDlg::ChooseProgramThreadContent(LPVOID pParam)
 			vector<int> vecHM;															//保存当日节目的所有时间
 			CString strTempItemID = "";													//循环中临时存放节目id
 			json jTemp = GetCurrentJson();
-			//如果template被删除，当前节目可能为空，此时使用默认
-			if (jTemp == "")
+
+			//如果template被删除，当前节目可能为空，此时使用默认||或者该日期已经过期
+			if (jTemp == "" || CheckTimeLimit(jTemp["body"]["data"]["itemenddate"].get<std::string>().c_str()))
 			{
 				ChangeCurrentJson(jDefault);
 				jTemp = jDefault;
-				LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "当前无其他节目，开始播放默认节目，全天");
+				LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "ChooseProgram", "当前无其他节目或已经过期，开始播放默认节目，全天");
 			}
 			//单节目		
 			if (jTemp["body"].find("datalist") == jTemp["body"].end())

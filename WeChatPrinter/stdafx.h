@@ -48,7 +48,7 @@
 #define INFO_PUBLISH_SCREEN_NAME "INFO_PUBLISH_SCREEN"
 
 
-//#define TESTMODE		//开启测试模式
+#define TESTMODE		//开启测试模式
 
 
 
