@@ -200,6 +200,8 @@ private:
 
 	// 启动代理
  	void ProxyStart_http();
+	//启动网络检测
+	void network_tips();
 
 public:
 	// 窗口大小

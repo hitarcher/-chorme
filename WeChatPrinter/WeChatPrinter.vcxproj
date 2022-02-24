@@ -52,7 +52,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>../bin/</OutDir>
-    <IncludePath>$(SolutionDir)http\;$(SolutionDir)socket\;$(SolutionDir)config\;$(SolutionDir)comm\;$(SolutionDir)json\;$(SolutionDir)include\;$(SolutionDir)cef91;$(SolutionDir)cef;./;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)http\;$(SolutionDir)socket\;$(SolutionDir)config\;$(SolutionDir)comm\;$(SolutionDir)json\;$(SolutionDir)include\;$(SolutionDir)cef91;$(SolutionDir)cef;$(SolutionDir)networkTips\;./;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)lib\;..\cef91;C:\OpenSSL-Win32\lib;C:\Program Files (x86)\OpenSSL-Win32\lib;$(LibraryPath)</LibraryPath>
     <TargetName>InfoPublishScreen</TargetName>
     <CodeAnalysisRuleSet>D:\WorkSoftware\VS2015\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
@@ -151,6 +151,7 @@
     <ClInclude Include="..\include\mylog.h" />
     <ClInclude Include="..\include\myos.h" />
     <ClInclude Include="..\include\mystring.h" />
+    <ClInclude Include="..\include\mytimer.h" />
     <ClInclude Include="..\include\Ping.h" />
     <ClInclude Include="..\include\PlayerCtrl.h" />
     <ClInclude Include="..\include\RS232C.H" />
@@ -165,6 +166,7 @@
     <ClInclude Include="..\include\tinystr.h" />
     <ClInclude Include="..\include\tinyxml.h" />
     <ClInclude Include="..\include\UDPSocketClient.h" />
+    <ClInclude Include="..\networkTips\NetworkTips.h" />
     <ClInclude Include="Admins.h" />
     <ClInclude Include="CommunicateInterface.h" />
     <ClInclude Include="Heads.h" />
@@ -191,6 +193,7 @@
     <ClCompile Include="..\comm\MakePNG.cpp" />
     <ClCompile Include="..\Config\Config.cpp" />
     <ClCompile Include="..\http\HttpClient.cpp" />
+    <ClCompile Include="..\networkTips\NetworkTips.cpp" />
     <ClCompile Include="Admins.cpp" />
     <ClCompile Include="mycef.cpp" />
     <ClCompile Include="ProxyToH5.cpp" />

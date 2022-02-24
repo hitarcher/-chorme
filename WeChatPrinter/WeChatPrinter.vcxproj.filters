@@ -37,6 +37,9 @@
     <Filter Include="ProxyToH5">
       <UniqueIdentifier>{5a02ad7a-c155-4024-bac8-12e2ee62619f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="networkTips">
+      <UniqueIdentifier>{8cc5b88d-1139-494c-ac8c-5684e0c065e4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -210,6 +213,12 @@
     <ClInclude Include="ProxyToH5.h">
       <Filter>ProxyToH5</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\mytimer.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\networkTips\NetworkTips.h">
+      <Filter>networkTips</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -256,6 +265,9 @@
     </ClCompile>
     <ClCompile Include="ProxyToH5.cpp">
       <Filter>ProxyToH5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\networkTips\NetworkTips.cpp">
+      <Filter>networkTips</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

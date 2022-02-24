@@ -4,7 +4,7 @@
 #include "afxdialogex.h"
 #include "myimagecompress.h"
 #include "simple_handler.h"
-
+#include "NetworkTips.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -190,7 +190,7 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	}
 
 	/***********************************************************************************************************/
-
+	
 	//加载动态库
 	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "准备开始加载动态库");
 	if (FALSE == LoadRMQPubAndRMQSUBDLL())
@@ -311,6 +311,17 @@ void CWeChatPrinterDlg::OnDestroy()
 	CImageDlg::OnDestroy();
 }
 
+
+void CWeChatPrinterDlg::network_tips()
+{
+	int posss = g_Config.m_strHttpUrl.Find("release-web");
+	CString strHost = g_Config.m_strHttpDwonloadUrl.Left(posss - 1);
+
+	CNetworkTips tips;
+	tips.set_checking_httpurl(strHost.GetBuffer(0));
+	tips.set_position(2);
+	tips.DoModal();
+}
  
 BOOL CWeChatPrinterDlg::ZipImg()
 {
@@ -1755,6 +1766,12 @@ DWORD CWeChatPrinterDlg::ReSignThreadContent(LPVOID pParam)
 				g_Config.WriteStringToCfgDev("RMQ", "DeviceType", m_strDeviceType);
 				g_Config.LoadRMQCfg();
 				RMQ_SUBConnect();
+
+				// 网络状态
+				std::thread th_access_http([&]() {
+					network_tips();
+				});
+				th_access_http.detach();
 
 				//测试功能，心跳，暂未上线
 				//SetEvent(m_hHeartBeatEvent);
