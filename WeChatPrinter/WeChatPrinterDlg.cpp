@@ -20,6 +20,7 @@
 #define BTN_ADMIN_LOGOUT	2000									
 #define TIMER_OFFLINEREBOT  1008
 
+#define OFFLINETIME 31
 #define templatezip "template.json"
 #define defaultJson "template/default.json"
 #define AutoUpdateMsg "自动更新\\Msg.ini"
@@ -242,6 +243,10 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	SetTimer(TIMER_CHECKMEMORY, 5000, NULL);
 	//隔30天删除一次没有归属的素材
 	DelateResource();
+	// 间隔一段时间，如果没有OFFLINE消息 对这个定时器重置时间，则会重启。
+	//此修改针对的是，那种能签到成功，但是却中途断开RMQ,或者一开始就无法连接RMQ的设备，重启软件就能恢复的设备。
+	SetTimer(TIMER_OFFLINEREBOT, OFFLINETIME *60 * 1000, NULL);
+
 
 	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "界面初始化成功");
 	return TRUE;
@@ -1812,7 +1817,7 @@ DWORD CWeChatPrinterDlg::DeviceStatusThreadContent(LPVOID pParam)
 				CString str_Begin = tmBegin.Format("%Y%m%d%H%M%S");
 				LOG2(LOGTYPE_DEBUG, LOG_NAME_OFFLINE, "DeviceStatusThreadContent", "[设备状态上传失败！][%s][%s]", str_Begin, g_toolTrade.GetLastErr());
 			}
-			//SetTimer(TIMER_OFFLINEREBOT, 10 * 60 * 1000, NULL);//害怕有的地方的人，设备一直离线，那它就要一直重启
+			SetTimer(TIMER_OFFLINEREBOT, OFFLINETIME * 60 * 1000, NULL);//害怕有的地方的人，设备一直离线，那它就要一直重启
 		}
 		ResetEvent(m_hDviceStatusEvent);
 	}
@@ -2326,6 +2331,8 @@ void GetSystemMemoryInfo()
 
 void RobotProgamme()
 {
+	LOG2(LOGTYPE_DEBUG, LOG_NAME_REBOT, "RobotProgamme", "超过%d分钟没有收到OFFLINE消息，程序即将重启",OFFLINETIME);
+
 	// TODO: 在此添加控件通知处理程序代码
 	::PostMessage(AfxGetMainWnd()->m_hWnd, WM_SYSCOMMAND, SC_CLOSE, NULL);
 	//获取exe程序当前路径
@@ -2349,4 +2356,5 @@ void RobotProgamme()
 		NULL,
 		&StartInfo,
 		&procStruct);
+
 }
