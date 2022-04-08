@@ -19,7 +19,6 @@
 #define TIMER_CHECKMEMORY	1007									//检测内存
 #define BTN_ADMIN_LOGOUT	2000									
 #define TIMER_OFFLINEREBOT  1008
-
 #define OFFLINETIME 31
 #define templatezip "template.json"
 #define defaultJson "template/default.json"
@@ -228,6 +227,8 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 // 	}
 //ProxyStart_http();
 	
+	NetWorkTipsInit();
+
 	//选择加载的节目json，包含离线压缩包解压，选择紧急插播节目或者是普通节目
 	if (FALSE == ChooseJson())
 	{
@@ -316,6 +317,15 @@ void CWeChatPrinterDlg::OnDestroy()
 	CImageDlg::OnDestroy();
 }
 
+
+void CWeChatPrinterDlg::NetWorkTipsInit()
+{
+	// 网络状态
+	std::thread th_access_http([&]() {
+		network_tips();
+	});
+	th_access_http.detach();
+}
 
 void CWeChatPrinterDlg::network_tips()
 {
@@ -1772,11 +1782,7 @@ DWORD CWeChatPrinterDlg::ReSignThreadContent(LPVOID pParam)
 				g_Config.LoadRMQCfg();
 				RMQ_SUBConnect();
 
-				// 网络状态
-				std::thread th_access_http([&]() {
-					network_tips();
-				});
-				th_access_http.detach();
+	
 
 				//测试功能，心跳，暂未上线
 				//SetEvent(m_hHeartBeatEvent);
