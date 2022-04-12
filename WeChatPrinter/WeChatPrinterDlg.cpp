@@ -19,7 +19,7 @@
 #define TIMER_CHECKMEMORY	1007									//检测内存
 #define BTN_ADMIN_LOGOUT	2000									
 #define TIMER_OFFLINEREBOT  1008
-#define OFFLINETIME 31
+#define OFFLINETIME 31												//31分钟内
 #define templatezip "template.json"
 #define defaultJson "template/default.json"
 #define AutoUpdateMsg "自动更新\\Msg.ini"
