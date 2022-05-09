@@ -17,8 +17,9 @@
 #define TIMER_CHOOSEPROGAME 1005									//选择节目
 #define TIMER_CHECKINCOMPELEDFILE 1006								//检测未完成的素材
 #define TIMER_CHECKMEMORY	1007									//检测内存
+#define TIMER_OFFLINEREBOT  1008									//调用连接rmq后，一定时间未收到offline消息，就重启
+
 #define BTN_ADMIN_LOGOUT	2000									
-#define TIMER_OFFLINEREBOT  1008
 #define OFFLINETIME 31												//31分钟内
 #define templatezip "template.json"
 #define defaultJson "template/default.json"
@@ -42,7 +43,7 @@ typedef int(_stdcall *lpRMQ_SUB)(const char *, int, const char *, const char *, 
 	const char *, const char *, int, int);
 lpRMQ_SUB _RMQ_SUB;
 lpRMQ_CALLBACK _RMQ_CALLBACK;
-
+CString g_strStartTime = "";
 CConfig	g_Config;
 
 HHOOK hMouseHook;
@@ -106,7 +107,6 @@ BEGIN_MESSAGE_MAP(CWeChatPrinterDlg, CImageDlg)
 	ON_WM_TIMER()
 	ON_WM_DESTROY()
 END_MESSAGE_MAP()
-
 // CWeChatPrinterDlg 消息处理程序
 BOOL CWeChatPrinterDlg::OnInitDialog()
 {
@@ -120,8 +120,8 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	LOG2(LOGTYPE_DEBUG, LOG_NAME_CEF, "==============START==============", "");
 	//删除超过30天的日志
 	LOG_CLEAR(30);
-
 	//cef_log.log 可能会异常过大，这边每次启动会检查并删除
+	g_strStartTime = GetCurTime(DAY_NORMAL).c_str();
 	ULONGLONG size;
 	CString strCEFLOGPath = get_fullpath("cef_catch//cef_log.log").c_str();
 	CFileStatus fileStatus;
@@ -244,9 +244,8 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	SetTimer(TIMER_CHECKMEMORY, 5000, NULL);
 	//隔30天删除一次没有归属的素材
 	DelateResource();
-	// 间隔一段时间，如果没有OFFLINE消息 对这个定时器重置时间，则会重启。
-	//此修改针对的是，那种能签到成功，但是却中途断开RMQ,或者一开始就无法连接RMQ的设备，重启软件就能恢复的设备。
-	SetTimer(TIMER_OFFLINEREBOT, OFFLINETIME *60 * 1000, NULL);
+
+	//system("HideTraywnd.cmd");
 
 
 	LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnInitDialog", "界面初始化成功");
@@ -256,7 +255,6 @@ EXIT:
 	EndDialog(FALSE);
 	return FALSE;
 }
-
 
 void CWeChatPrinterDlg::OnPaint()
 {
@@ -1782,7 +1780,10 @@ DWORD CWeChatPrinterDlg::ReSignThreadContent(LPVOID pParam)
 				g_Config.LoadRMQCfg();
 				RMQ_SUBConnect();
 
-	
+				// 间隔一段时间，如果没有OFFLINE消息 对这个定时器重置时间，则会重启。
+				//此修改针对的是，那种能签到成功，但是却中途断开RMQ,或者一开始就无法连接RMQ的设备，重启软件就能恢复的设备。
+				SetTimer(TIMER_OFFLINEREBOT, OFFLINETIME * 60 * 1000, NULL);
+
 
 				//测试功能，心跳，暂未上线
 				//SetEvent(m_hHeartBeatEvent);
@@ -2327,6 +2328,12 @@ void GetSystemMemoryInfo()
 	LOG2(LOGTYPE_DEBUG, LOG_NAME_MEMORY, "GetSystemMemoryInfo", "%s", strInfo);
 	CloseHandle(handle);
 
+	CString strNowTime = GetCurTime(DAY_NORMAL).c_str();
+	if (strNowTime != g_strStartTime)
+	{
+		LOG2(LOGTYPE_DEBUG, LOG_NAME_DEBUG, "OnTimer", "\n 程序运行于%s,现在即将重启程序\n",g_strStartTime);
+		RobotProgamme();
+	}
 	//虚拟内存使用率 >85 或者  已使用内存 >1100 MB 就重启程序
 // 	if (/*percent_memory_virtual >85 ||*/ usedMemory >1100)
 // 	{
