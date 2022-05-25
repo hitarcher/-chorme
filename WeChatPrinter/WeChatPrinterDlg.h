@@ -205,6 +205,8 @@ private:
 	//启动网络检测
 	void network_tips();
 
+	BOOL RemindTooBigVideoName();
+
 public:
 	// 窗口大小
 	CRect	m_rc;

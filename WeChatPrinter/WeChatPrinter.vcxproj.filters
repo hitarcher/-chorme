@@ -219,6 +219,9 @@
     <ClInclude Include="..\networkTips\NetworkTips.h">
       <Filter>networkTips</Filter>
     </ClInclude>
+    <ClInclude Include="MediaInfoDemo.h">
+      <Filter>comm</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

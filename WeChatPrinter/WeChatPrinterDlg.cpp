@@ -5,7 +5,9 @@
 #include "myimagecompress.h"
 #include "simple_handler.h"
 #include "NetworkTips.h"
+#include "MediaInfoDemo.h" //Dynamicly-loaded library (.dll or .so)
 
+using namespace MediaInfoDLL;
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif            
@@ -37,6 +39,8 @@ static int nCheckTimes = 0;											//检测如果两次还没更新掉，就不更新了。
 int g_nZipStatus = 0;												//判断程序运动后素材是否被压缩过了 0 没有压缩 1 压缩中 2 压缩完成
 static int g_nZipnum = 0;											//单次压缩计数,弃用该字段
 BOOL g_bH5IsReady = FALSE;
+vector<CString>g_vecBigVideName;
+vector<CString>g_vecBigVideContent;
 typedef void(__stdcall *_CallBack_Recv)(char* bMsg);
 typedef int(_stdcall *lpRMQ_CALLBACK)(_CallBack_Recv);
 typedef int(_stdcall *lpRMQ_SUB)(const char *, int, const char *, const char *, const char *,
@@ -244,6 +248,8 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	SetTimer(TIMER_CHECKMEMORY, 5000, NULL);
 	//隔30天删除一次没有归属的素材
 	DelateResource();
+	//提示节目里超过1k分辨率的视频素材-1min
+	RemindTooBigVideoName();
 
 	//system("HideTraywnd.cmd");
 
@@ -993,6 +999,60 @@ BOOL CWeChatPrinterDlg::CheckIncompleted()
 	nCheckTimes = 0;
 	return TRUE;
 }
+
+BOOL CWeChatPrinterDlg::RemindTooBigVideoName()
+{
+	vector<CString>vecTemp;
+	vector<CString>vecTemp2;
+	vector<CString>vecNeedRemind;
+
+	FindContent(jTemplate, vecTemp);
+	// 找MP4文件
+	for (int i = 0; i < vecTemp.size(); i++)
+	{
+		if (vecTemp[i].Find("mp4") >=0 )
+		{
+			vecTemp2.push_back(vecTemp[i]);
+		}
+	}
+	// 在MP4文件里找有没有不符合尺寸的文件，有的话把视频的命名保留下来
+	for (int i = 0; i < vecTemp2.size(); i++)
+	{
+		MediaInfo MI;
+		std::string strTemp = g_Config.m_strRelatePath + vecTemp2[i];
+		MI.Open(GetFullPath(strTemp.c_str()).GetBuffer(0));
+
+		CString width, height;
+		width = MI.Get(stream_t::Stream_Video, 0, "Width").c_str();
+		height = MI.Get(stream_t::Stream_Video, 0, "Height").c_str();
+
+		int no_menu_bar_width = GetSystemMetrics(SM_CXSCREEN);
+		int no_menu_bar__height = GetSystemMetrics(SM_CYSCREEN);
+
+		if (atoi(width) >no_menu_bar_width || atoi(height) >no_menu_bar__height )
+		{
+			for (int j = 0; j < g_vecBigVideContent.size(); j++)
+			{
+				if (vecTemp2[i] == g_vecBigVideContent[j])
+				{
+					vecNeedRemind.push_back(g_vecBigVideName[j]);
+					break;
+				}
+			}
+		}
+		//CString all = MI.Inform().c_str();//获得所有信息
+		MI.Close();
+	}
+	if (vecNeedRemind.size() == 0) return FALSE;
+
+	CString strRemindCotent = "节目中存在尺寸过大的视频，请联系市行科技进去素材更换,视频在节目的名称：\r\n";
+	for (int i = 0; i < vecNeedRemind.size(); i++)
+	{
+		strRemindCotent += vecNeedRemind[i] + "\r\n";
+	}
+
+	MessageBoxTimeout(m_hWnd, strRemindCotent,"过大视频素材提示",  MB_OKCANCEL, 0, 60*1000);
+}
 /****************************		功能函数		*****************************************/
 
 //排除掉容器里重复的元素，和为""的值
@@ -1086,6 +1146,14 @@ BOOL  FindContent(json jALL, vector<CString> &vecTemp)
 						std::string strUrl = *jGroupUrls.begin();
 						if ("" == strUrl)  continue;
 						vecTemp.push_back(strUrl.c_str());
+						if (strType == "video")
+						{
+							json::iterator posName = jo3.find("name");
+							json jUrls(posName.value());
+							std::string strName = *jUrls.begin();
+							g_vecBigVideName.push_back(strName.c_str());
+							g_vecBigVideContent.push_back(strUrl.c_str());
+						}
 					}
 				}
 				//--------------------//
@@ -1117,6 +1185,14 @@ BOOL  FindContent(json jALL, vector<CString> &vecTemp)
 					std::string strUrl = *jUrls.begin();
 					if ("" == strUrl)  continue;
 					vecTemp.push_back(strUrl.c_str());
+					if (strType == "video")
+					{
+						json::iterator posName = jo2.find("name");
+						json jUrls(posName.value());
+						std::string strName = *jUrls.begin();
+						g_vecBigVideName.push_back(strName.c_str());
+						g_vecBigVideContent.push_back(strUrl.c_str());
+					}
 				}
 				//-----------------//
 				//bgImg里的内容//
@@ -1687,6 +1763,7 @@ BOOL CWeChatPrinterDlg::RMQ_DealCustomMsg(CString strMsg)
 					{
 						LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "UpLoadPic 上传截图失败 [%s]", g_toolTrade.GetLastErr());
 					}
+					RemindTooBigVideoName();
 				}
 				else if (vct[2].CompareNoCase("TURNSTATUS") == 0)
 				{

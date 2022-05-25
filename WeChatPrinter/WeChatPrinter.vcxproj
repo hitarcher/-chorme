@@ -169,6 +169,7 @@
     <ClInclude Include="Admins.h" />
     <ClInclude Include="CommunicateInterface.h" />
     <ClInclude Include="Heads.h" />
+    <ClInclude Include="MediaInfoDemo.h" />
     <ClInclude Include="ProxyToH5.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
