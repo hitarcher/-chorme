@@ -1015,6 +1015,9 @@ BOOL CWeChatPrinterDlg::RemindTooBigVideoName()
 			vecTemp2.push_back(vecTemp[i]);
 		}
 	}
+	int no_menu_bar_width = GetSystemMetrics(SM_CXSCREEN);
+	int no_menu_bar__height = GetSystemMetrics(SM_CYSCREEN);
+
 	// 在MP4文件里找有没有不符合尺寸的文件，有的话把视频的命名保留下来
 	for (int i = 0; i < vecTemp2.size(); i++)
 	{
@@ -1026,8 +1029,6 @@ BOOL CWeChatPrinterDlg::RemindTooBigVideoName()
 		width = MI.Get(stream_t::Stream_Video, 0, "Width").c_str();
 		height = MI.Get(stream_t::Stream_Video, 0, "Height").c_str();
 
-		int no_menu_bar_width = GetSystemMetrics(SM_CXSCREEN);
-		int no_menu_bar__height = GetSystemMetrics(SM_CYSCREEN);
 
 		if (atoi(width) >no_menu_bar_width || atoi(height) >no_menu_bar__height )
 		{
