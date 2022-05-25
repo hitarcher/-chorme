@@ -205,7 +205,7 @@ private:
 	//启动网络检测
 	void network_tips();
 
-	BOOL RemindTooBigVideoName();
+	BOOL RemindTooBigVideoName(int waitTime);
 
 public:
 	// 窗口大小

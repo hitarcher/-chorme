@@ -249,7 +249,7 @@ BOOL CWeChatPrinterDlg::OnInitDialog()
 	//隔30天删除一次没有归属的素材
 	DelateResource();
 	//提示节目里超过1k分辨率的视频素材-1min
-	RemindTooBigVideoName();
+	RemindTooBigVideoName(60);
 
 	//system("HideTraywnd.cmd");
 
@@ -1000,7 +1000,7 @@ BOOL CWeChatPrinterDlg::CheckIncompleted()
 	return TRUE;
 }
 
-BOOL CWeChatPrinterDlg::RemindTooBigVideoName()
+BOOL CWeChatPrinterDlg::RemindTooBigVideoName(int waitTime)
 {
 	vector<CString>vecTemp;
 	vector<CString>vecTemp2;
@@ -1052,7 +1052,7 @@ BOOL CWeChatPrinterDlg::RemindTooBigVideoName()
 		strRemindCotent += vecNeedRemind[i] + "\r\n";
 	}
 
-	MessageBoxTimeout(m_hWnd, strRemindCotent,"过大视频素材提示",  MB_OKCANCEL, 0, 60*1000);
+	MessageBoxTimeout(m_hWnd, strRemindCotent,"过大视频素材提示",  MB_OKCANCEL, 0, waitTime *1000);
 }
 /****************************		功能函数		*****************************************/
 
@@ -1752,6 +1752,8 @@ BOOL CWeChatPrinterDlg::RMQ_DealCustomMsg(CString strMsg)
 				}
 				else if (vct[2].CompareNoCase("SCREENCUT") == 0)//截屏上传
 				{
+					RemindTooBigVideoName(1);
+
 					CString strPicName = vct[3];
 					CString strFile = ScreenShot();
 					CString strBase64Pic = Base64EncodePic(strFile);
@@ -1764,7 +1766,6 @@ BOOL CWeChatPrinterDlg::RMQ_DealCustomMsg(CString strMsg)
 					{
 						LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "RMQ_DealCustomMsg", "UpLoadPic 上传截图失败 [%s]", g_toolTrade.GetLastErr());
 					}
-					RemindTooBigVideoName();
 				}
 				else if (vct[2].CompareNoCase("TURNSTATUS") == 0)
 				{
