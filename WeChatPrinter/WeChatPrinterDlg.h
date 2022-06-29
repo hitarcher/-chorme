@@ -222,6 +222,7 @@ public:
 	afx_msg void OnDestroy();
 	DECLARE_EVENTSINK_MAP()
 	void CWeChatPrinterDlg::MspaintSave(CString strFilePath);
+	BOOL CWeChatPrinterDlg::AvoidBigVideo();
 
 };
 /************************************************************************\

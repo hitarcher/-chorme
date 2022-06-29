@@ -50,6 +50,8 @@ lpRMQ_CALLBACK _RMQ_CALLBACK;
 CString g_strStartTime = "";
 CConfig	g_Config;
 
+vector<CString>vecNeedRemind;
+
 HHOOK hMouseHook;
 LRESULT CALLBACK OnMouseEvent(int nCode, WPARAM wParam, LPARAM lParam);
 
@@ -687,6 +689,8 @@ BOOL CWeChatPrinterDlg::ParseNewTemplateOfH5(CString strJson, BOOL bIsSingleProg
 		j = jTemp;
 	}
 
+	MediaInfo MI;
+
 	for (unsigned int i = 0; bIsSingleProgram || i < j.size(); i++)
 	{
 		json jPage;
@@ -753,6 +757,14 @@ BOOL CWeChatPrinterDlg::ParseNewTemplateOfH5(CString strJson, BOOL bIsSingleProg
 						jGroupUrls = strLocalPath.GetBuffer(0);
 						strLocalPath.ReleaseBuffer();
 						if (bParseOnly == TRUE) continue;
+						if (strType == "video")
+						{
+							MI.Open(GetFullPath(g_Config.m_strRelatePath + strLocalPath).GetBuffer(0));
+							CString width, height;
+							width = MI.Get(stream_t::Stream_Video, 0, "Width").c_str();
+							height = MI.Get(stream_t::Stream_Video, 0, "Height").c_str();
+							jo3["videosize"] = width + "*" + height;
+						}
 						DownLoadFile(strUrl.c_str(), strLocalPath);
 						jo3["content"] = jGroupUrls;
 					}
@@ -778,6 +790,14 @@ BOOL CWeChatPrinterDlg::ParseNewTemplateOfH5(CString strJson, BOOL bIsSingleProg
 					jResource = strLocalPath.GetBuffer(0);
 					strLocalPath.ReleaseBuffer();
 					if (bParseOnly == TRUE) continue;
+					if (strLocalPath.Find("mp4")>0)
+					{
+						MI.Open(GetFullPath(g_Config.m_strRelatePath + strLocalPath).GetBuffer(0));
+						CString width, height;
+						width = MI.Get(stream_t::Stream_Video, 0, "Width").c_str();
+						height = MI.Get(stream_t::Stream_Video, 0, "Height").c_str();
+						jo4["videosize"] = width + "*" + height;
+					}
 					DownLoadFile(strUrl.c_str(), strLocalPath);
 					jo4["content"] = jResource;
 				}
@@ -801,6 +821,14 @@ BOOL CWeChatPrinterDlg::ParseNewTemplateOfH5(CString strJson, BOOL bIsSingleProg
 					jUrls = strLocalPath.GetBuffer(0);
 					strLocalPath.ReleaseBuffer();
 					if (bParseOnly == TRUE) continue;
+					if (strType == "video")
+					{
+						MI.Open(GetFullPath(g_Config.m_strRelatePath + strLocalPath).GetBuffer(0));
+						CString width, height;
+						width = MI.Get(stream_t::Stream_Video, 0, "Width").c_str();
+						height = MI.Get(stream_t::Stream_Video, 0, "Height").c_str();
+						jo2["videosize"] = width + "*" + height;
+					}
 					DownLoadFile(strUrl.c_str(), strLocalPath);
 					jo2["content"] = jUrls;
 				}
@@ -1004,7 +1032,6 @@ BOOL CWeChatPrinterDlg::RemindTooBigVideoName(int waitTime)
 {
 	vector<CString>vecTemp;
 	vector<CString>vecTemp2;
-	vector<CString>vecNeedRemind;
 
 	FindContent(jTemplate, vecTemp);
 	// 找MP4文件
@@ -1053,6 +1080,141 @@ BOOL CWeChatPrinterDlg::RemindTooBigVideoName(int waitTime)
 	}
 
 	MessageBoxTimeout(m_hWnd, strRemindCotent,"过大视频素材提示",  MB_OKCANCEL, 0, waitTime *1000);
+}
+
+BOOL CWeChatPrinterDlg::AvoidBigVideo()
+{
+	if (jForIE == "")
+	{
+		return FALSE;
+	}
+	json j = jForIE;
+	BOOL bIsSingleProgram = FALSE;
+
+	for (unsigned int i = 0; bIsSingleProgram || i < j.size(); i++)
+	{
+		json jPage;
+		//判断是否是单模板
+		jPage = j["page"];
+	
+		if (jPage.is_array() == FALSE)
+		{
+			CString strLastErr = "解析template json[page]格式不正确";
+			LOG2(LOGTYPE_ERROR, LOG_NAME_DEBUG, "FindContent", "[err][%s]", strLastErr);
+			return FALSE;
+		}
+
+		json jArray_edit = json::array();//创建一个空数组
+		json jo = json::object();		 //创建一个空对象
+		for (json::iterator it = jPage.begin(); it != jPage.end(); jArray_edit.push_back(jo), ++it)
+		{
+			jo = *it;
+			json jArray_edit2 = json::array();//创建一个空数组
+			json jo2 = json::object();		 //创建一个空对象
+			json jElements = jo["elements"];
+			for (json::iterator it2 = jElements.begin(); it2 != jElements.end(); jArray_edit2.push_back(jo2), ++it2)
+			{
+				// array转object
+				jo2 = *it2;
+				if (jo2.is_object() == false) continue;
+				std::string strFilePath = "www/static/";
+
+				//-----------------//
+				//group里的内容//
+				//-----------------//
+				json jArray_edit3 = json::array();//创建一个空数组
+				json jo3 = json::object();		  //创建一个空对象
+				json jGroup = jo2["group"];
+				for (json::iterator it3 = jGroup.begin(); it3 != jGroup.end(); ++it3)
+				{
+					jo3 = *it3;
+					//排除掉非 img、vidoe、carousel 里的content资源下载，例如btn的content可能是一串中文
+					std::string strType = jo3["type"].get<std::string>();
+					if ( strType == "video" )
+					{
+						json::iterator posGroupContent = jo3.find("content");
+						json jGroupUrls(posGroupContent.value());
+						std::string strUrl = *jGroupUrls.begin();
+						CString strUrl1 = strUrl.c_str();
+						if ("" == strUrl)  continue;
+						bool bBig = false;
+						for (int i = 0; i < g_vecBigVideContent.size(); i++)
+						{
+							if (strUrl1 == g_vecBigVideContent[i])
+							{
+								bBig = true;
+								break;
+							}
+						}
+						if (bBig) continue;
+						jArray_edit3.push_back(jo3);
+					}
+				}
+				jo2["group"] = jArray_edit3;
+
+				//--------------------//
+				//下载resource里的内容//
+				//--------------------//
+				json jArray_edit4 = json::array();//创建一个空数组
+				json jo4 = json::object();		  //创建一个空对象
+				json jResource = jo2["resource"];
+				for (json::iterator it3 = jResource.begin(); it3 != jResource.end();  ++it3)
+				{
+					jo4 = *it3;
+// 					json::iterator posGroupContent = jo4.find("content");
+// 					json jResource(posGroupContent.value());
+// 					std::string strUrl = *jResource.begin();
+					CString strUrl = jo4["content"].get<std::string>().c_str();
+					
+					bool bBig = false;
+					for (int i = 0; i < g_vecBigVideContent.size(); i++)
+					{
+						if (strUrl == g_vecBigVideContent[i])
+						{
+							bBig = true;
+							break;
+						}
+					}
+					if (bBig) continue;
+					jArray_edit4.push_back(jo4);
+				}
+				jo2["resource"] = jArray_edit4;
+				//-------------------//
+				//content里的内容//
+				//-------------------//
+				//排除掉非 img、vidoe、carousel 里的content资源下载，例如btn的content可能是一串中文
+				if (jResource.begin() == jResource.end())
+				{
+					std::string strType = jo2["type"].get<std::string>();
+					if (strType == "video")
+					{
+						json::iterator posContent = jo2.find("content");
+						if (posContent == jo2.end() || posContent.value().is_string() == false) continue;
+						json jUrls(posContent.value());
+						std::string strUrl = *jUrls.begin();
+						CString strUrl1 = strUrl.c_str();
+						if ("" == strUrl)  continue;
+						bool bBig = false;
+						for (int i = 0; i < g_vecBigVideContent.size(); i++)
+						{
+							if (strUrl1 == g_vecBigVideContent[i])
+							{
+								bBig = true;
+								break;
+							}
+						}
+						if (bBig) continue;
+					}
+				}
+			
+
+			}
+			jo["elements"] = jArray_edit2;
+		}
+		jPage = jArray_edit;
+		j["page"] = jPage;
+	}
+	jForIE = j;
 }
 /****************************		功能函数		*****************************************/
 
