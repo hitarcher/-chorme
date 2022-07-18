@@ -64,7 +64,8 @@ int cef_init(CString m_strHtmlPath)
 		LOG2(LOGTYPE_DEBUG, LOG_NAME_CEF, "cef_init", "设置分辨率为 %dx%d", g_Config.m_nPageWide, g_Config.m_nPageHigh);
 	}
 	CRect rect;
- 	maindlg->GetWindowRect(&rect);
+	//当修改位置时，如果是右边一个屏，比如（1920，0，1920，1080），那GetWindowRect 得到（1920，0，3840，1080），这个rect，会导致黑屏，实际内容在更右边一块区域播放
+	rect.SetRect(0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
 
 	//********************************************************************************
 
